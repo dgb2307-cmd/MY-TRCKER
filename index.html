@@ -27,7 +27,7 @@
     --onaccent: #000000;
     --orange: #FF7A00;
     --navbg: rgba(0, 0, 0, 0.96);
-    --green: #22c55e;
+    --green: #22C55E;
     --t-blue: #60a5fa;
     --t-amber: #fbbf24;
     --t-green: #34d399;
@@ -46,7 +46,7 @@
     --onaccent: #FFFFFF;
     --orange: #FF7A00;
     --navbg: rgba(255, 255, 255, 0.96);
-    --green: #16a34a;
+    --green: #22C55E;
     --t-blue: #2563eb;
     --t-amber: #d97706;
     --t-green: #15803d;
@@ -416,6 +416,36 @@
   .chip.c-amber.on { background: rgba(251, 191, 36, 0.18); color: var(--t-amber); border-color: rgba(251, 191, 36, 0.55); }
   .chip.c-green.on { background: rgba(52, 211, 153, 0.18); color: var(--t-green); border-color: rgba(52, 211, 36, 0.55); }
 
+  /* Distintivo de estado de API Key */
+  .api-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+    background: var(--card2);
+    color: var(--muted);
+  }
+  .api-badge.active {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: #22C55E;
+    color: #22C55E;
+  }
+  .api-badge.error {
+    background: rgba(255, 69, 58, 0.15);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .api-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
   .bar { height: 7px; background: var(--card2); border-radius: 99px; overflow: hidden; }
   .bar > div { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s; }
 
@@ -684,7 +714,7 @@ const TABS = [
 const defaults = () => ({
   events: [],
   subjects: [],
-  settings: { work: 25, rest: 5, geminiKey: '', theme: 'dark' },
+  settings: { work: 25, rest: 5, geminiKey: '', geminiVerified: false, theme: 'dark' },
   pomo: { phase: 'work', remaining: 25 * 60, running: false, endAt: null, sessions: 0 },
   stats: { focusByDate: {}, activeDays: {} },
   ui: { tab: 'home', sub: 'list', calMode: 'week', settingsSub: 'main', openSubj: [], collapsedBlocks: [] }
@@ -707,7 +737,8 @@ function normalize(o) {
   s.settings = Object.assign({}, d.settings, o.settings);
   s.settings.work = clampMin(s.settings.work);
   s.settings.rest = clampMin(s.settings.rest);
-  s.settings.geminiKey = String(s.settings.geminiKey || '');
+  s.settings.geminiKey = String(s.settings.geminiKey || '').trim();
+  s.settings.geminiVerified = !!s.settings.geminiVerified && !!s.settings.geminiKey;
   if (!['dark', 'light'].includes(s.settings.theme)) s.settings.theme = 'dark';
 
   s.pomo = Object.assign({}, d.pomo, o.pomo);
@@ -759,6 +790,7 @@ function load() {
 
 let S = load();
 let sel = todayStr();
+let verifyingKey = false;
 
 const save = () => {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -965,119 +997,194 @@ function startVoice(key, cb) {
   try { r.start(); } catch (e) { toast('No se pudo activar el micrófono'); }
 }
 
-/* 3. Separación estricta de título y fecha/hora (Ej: "comida día 31 a las 1" -> título: "Comida", día 31, hora 13:00) */
-const NW = { una: 1, un: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12 };
-const numv = x => { x = String(x).toLowerCase(); return /^\d+$/.test(x) ? parseInt(x, 10) : NW[x]; };
+/* Diccionario de números en español (1 al 31) para días y horas habladas */
+const SPANISH_NUMS = {
+  un: 1, uno: 1, una: 1, primero: 1,
+  dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+  once: 11, doce: 12, trece: 13, catorce: 14, quince: 15,
+  dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19,
+  veinte: 20, veintiuno: 21, veintiuna: 21, veintidos: 22, veintitres: 23, veinticuatro: 24,
+  veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29,
+  treinta: 30, 'treinta y uno': 31, 'treinta y una': 31
+};
+
+const normStr = str => String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+function parseSpanishNumber(val) {
+  if (!val) return null;
+  const clean = normStr(val).trim();
+  if (/^\d+$/.test(clean)) return parseInt(clean, 10);
+  return SPANISH_NUMS[clean] || null;
+}
+
 const WD = { domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6 };
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const LA = '(?=[\\s.,;:!?]|$)';
 
-function parseVoiceLocal(text) {
-  let s = ' ' + String(text).replace(/\s+/g, ' ').trim() + ' ';
+function resolveDayOfMonth(dd, baseDate) {
+  let yy = baseDate.getFullYear(), mm = baseDate.getMonth();
+  let lastDay = new Date(yy, mm + 1, 0).getDate();
+  if (dd <= lastDay) {
+    return fmt(new Date(yy, mm, dd));
+  }
+  // Si el mes actual no tiene ese día (ej. día 31 en un mes de 30), buscar el mes más cercano o ajustar
+  let nextLastDay = new Date(yy, mm + 2, 0).getDate();
+  if (dd <= nextLastDay) {
+    return fmt(new Date(yy, mm + 1, dd));
+  }
+  return fmt(new Date(yy, mm, lastDay));
+}
+
+/* 1. Extracción estricta local: separa título de día y hora sin dejar residuos en el texto */
+function parseVoiceLocal(rawPhrase) {
+  let s = ' ' + String(rawPhrase || '').replace(/\s+/g, ' ').trim() + ' ';
   let date = null, time = null, timeOfDay = null, duration = null, category = 'Personal';
   const today = todayStr();
   const baseDate = parse(sel || today);
-  const cut = m => { s = s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length); };
 
-  // 1) Duración ("durante 30 minutos", "por 15 min")
-  let mDur = s.match(/\s(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min|m)\b/i);
-  if (mDur) { duration = parseInt(mDur[1], 10); cut(mDur); }
+  // A) Duración ("durante 30 minutos", "por 15 min")
+  s = s.replace(/\s(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min|m)(?=\s|[.,;:!?]|$)/gi, (_, d) => {
+    duration = parseInt(d, 10);
+    return ' ';
+  });
 
-  // 2) Hora ("a las 1", "a la 1", "a las 13:00", "a las 3 de la tarde")
-  const NUM = '(\\d{1,2}|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)';
-  const reT = new RegExp('\\s(?:a|sobre|hacia|para|desde)?\\s*la[s]?\\s+' + NUM +
-    '(?:\\s*[:.h]\\s*(\\d{2}))?(?:\\s+y\\s+(media|cuarto|\\d{1,2}))?(?:\\s+menos\\s+(cuarto|\\d{1,2}))?' +
-    '(?:\\s*(?:horas|hs|h))?(?:\\s+(?:de|por|en)\\s+la\\s+(ma[ñn]ana|tarde|noche|madrugada))?' + LA, 'i');
-  let m = s.match(reT);
-  if (m) {
-    const raw = numv(m[1]);
-    let h = raw, mi = 0;
-    if (m[2]) mi = parseInt(m[2], 10);
-    if (m[3]) mi = m[3] === 'media' ? 30 : m[3] === 'cuarto' ? 15 : parseInt(m[3], 10);
-    const per = m[5] ? m[5].toLowerCase() : '';
+  // B) Hora hablada o numérica:
+  // Soporta: "a la 1", "a las 1", "a la una", "a las 13:00", "a las 2 y media", "a las 4 de la tarde", "a las 14h"
+  const HOUR_TOKEN = '(?:\\d{1,2}|una|uno|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiuna|veintid[oó]s|veintitr[eé]s)';
+  const reHora = new RegExp(
+    '(?:^|\\s)(?:(?:a|sobre|hacia|para|desde)\\s+)?(?:la|las)\\s+(' + HOUR_TOKEN + ')' +
+    '(?:\\s*(?::|\\.|h|horas?)\\s*(\\d{1,2})?)?' +
+    '(?:\\s+y\\s+(media|cuarto|\\d{1,2}|veinte|diez|cinco|veinticinco))?' +
+    '(?:\\s+menos\\s+(cuarto|\\d{1,2}|veinte|diez|cinco|veinticinco))?' +
+    '(?:\\s*(?:horas|hs|h))?' +
+    '(?:\\s+(?:de|por|en)\\s+la\\s+(ma[ñn]ana|tarde|noche|madrugada))?' +
+    '(?=\\s|[.,;:!?]|$)', 'i'
+  );
+
+  const mHora = s.match(reHora);
+  if (mHora) {
+    let h = parseSpanishNumber(mHora[1]);
+    let mi = 0;
+    if (mHora[2]) mi = parseInt(mHora[2], 10);
+    if (mHora[3]) {
+      const m3 = normStr(mHora[3]);
+      mi = m3 === 'media' ? 30 : m3 === 'cuarto' ? 15 : (parseSpanishNumber(m3) || 0);
+    }
+    const per = mHora[5] ? normStr(mHora[5]) : '';
     if (per === 'tarde') { if (h < 12) h += 12; }
-    else if (per === 'noche') { if (raw === 12) h = 0; else if (h < 12) h += 12; }
-    else if (per) { if (h === 12) h = 0; }
-    else if (h >= 1 && h <= 7) h += 12; // "a las 1" o "a la 1" -> 13:00 por defecto
-    if (m[4]) { h -= 1; mi = m[4] === 'cuarto' ? 45 : 60 - parseInt(m[4], 10); }
-    if (h >= 0 && h <= 23 && mi >= 0 && mi <= 59) { time = pad(h) + ':' + pad(mi); cut(m); }
+    else if (per === 'noche') { if (h === 12) h = 0; else if (h < 12) h += 12; }
+    else if (per === 'manana' || per === 'madrugada') { if (h === 12) h = 0; }
+    else if (h >= 1 && h <= 7) {
+      // "comida día 31 a la 1" o "a las 1" -> 13:00
+      h += 12;
+    }
+    if (mHora[4]) {
+      const m4 = normStr(mHora[4]);
+      h = (h - 1 + 24) % 24;
+      const sub = m4 === 'cuarto' ? 15 : (parseSpanishNumber(m4) || 0);
+      mi = 60 - sub;
+    }
+    if (h !== null && h >= 0 && h <= 23 && mi >= 0 && mi <= 59) {
+      time = `${pad(h)}:${pad(mi)}`;
+      s = s.slice(0, mHora.index) + ' ' + s.slice(mHora.index + mHora[0].length);
+    }
   }
 
-  // 3) Momento del día explícito
-  let mTod = s.match(new RegExp('\\s(?:por|en|de)\\s+la\\s+(ma[ñn]ana|tarde|noche)' + LA, 'i'));
-  if (mTod) {
-    const p = mTod[1].toLowerCase();
-    timeOfDay = p.startsWith('ma') ? 'morning' : p === 'tarde' ? 'afternoon' : 'evening';
-    cut(mTod);
-  }
-
-  // 4) Fecha con mes ("el 31 de octubre", "día 15 de mayo")
-  m = s.match(new RegExp('\\s(?:para\\s+)?(?:el\\s+)?(?:d[ií]a\\s+)?(\\d{1,2})\\s+de\\s+(' + MONTHS.join('|') + ')(?:\\s+de\\s+(\\d{4}))?' + LA, 'i'));
-  if (m) {
-    const dd = parseInt(m[1], 10), mm = MONTHS.indexOf(m[2].toLowerCase());
-    let yy = m[3] ? parseInt(m[3], 10) : baseDate.getFullYear();
-    let d = new Date(yy, mm, dd);
-    if (d.getMonth() === mm && dd >= 1) { date = fmt(d); cut(m); }
-  }
-
-  // 5) Día numérico del mes ("día 31", "el día 31", "para el día 12", "el 31")
-  if (!date) {
-    m = s.match(new RegExp('\\s(?:para\\s+)?(?:el\\s+)?d[ií]a\\s+(\\d{1,2})' + LA, 'i')) ||
-        s.match(new RegExp('\\s(?:para\\s+el|el)\\s+(\\d{1,2})' + LA, 'i'));
-    if (m) {
-      const dd = parseInt(m[1], 10);
-      if (dd >= 1 && dd <= 31) {
-        let yy = baseDate.getFullYear(), mm = baseDate.getMonth();
-        let candidate = new Date(yy, mm, dd);
-        if (candidate.getMonth() !== mm) {
-          candidate = new Date(yy, mm + 1, dd);
-        }
-        date = fmt(candidate);
-        cut(m);
+  // Hora formato directo "a las 13:30" o "13:30"
+  if (!time) {
+    const mDirect = s.match(/(?:^|\s)(?:a\s+las?\s+)?(\d{1,2}):(\d{2})(?:\s*h)?(?=\s|[.,;:!?]|$)/i);
+    if (mDirect) {
+      const h = parseInt(mDirect[1], 10), mi = parseInt(mDirect[2], 10);
+      if (h >= 0 && h <= 23 && mi >= 0 && mi <= 59) {
+        time = `${pad(h)}:${pad(mi)}`;
+        s = s.slice(0, mDirect.index) + ' ' + s.slice(mDirect.index + mDirect[0].length);
       }
     }
   }
 
-  // 6) Expresiones relativas (pasado mañana, mañana, hoy, lunes...)
-  if (!date) {
-    m = s.match(new RegExp('\\s(?:para\\s+)?pasado\\s+ma[ñn]ana' + LA, 'i'));
-    if (m) { date = addDays(today, 2); cut(m); }
+  // Mediodía / Medianoche
+  if (!time) {
+    const mMid = s.match(/(?:^|\s)(?:al\s+)?mediod[ií]a(?=\s|[.,;:!?]|$)/i);
+    if (mMid) { time = '12:00'; s = s.slice(0, mMid.index) + ' ' + s.slice(mMid.index + mMid[0].length); }
   }
-  if (!date) {
-    m = s.match(new RegExp('\\s(?:para\\s+)?ma[ñn]ana' + LA, 'i'));
-    if (m) { date = addDays(today, 1); cut(m); }
+
+  // C) Momento del día explícito ("por la mañana", "por la tarde", "por la noche")
+  const mTod = s.match(/(?:^|\s)(?:por|en|de)\s+la\s+(ma[ñn]ana|tarde|noche)(?=\s|[.,;:!?]|$)/i);
+  if (mTod) {
+    const p = normStr(mTod[1]);
+    timeOfDay = p.startsWith('man') ? 'morning' : p === 'tarde' ? 'afternoon' : 'evening';
+    s = s.slice(0, mTod.index) + ' ' + s.slice(mTod.index + mTod[0].length);
   }
-  if (!date) {
-    m = s.match(new RegExp('\\s(?:para\\s+)?hoy' + LA, 'i'));
-    if (m) { date = today; cut(m); }
-  }
-  if (!date) {
-    m = s.match(new RegExp('\\s(?:para\\s+)?(?:(?:el|este)\\s+)?(?:pr[oó]ximo\\s+)?(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)' + LA, 'i'));
-    if (m) {
-      const key = m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const diff = (WD[key] - parse(today).getDay() + 7) % 7 || 7;
-      date = addDays(today, diff); cut(m);
+
+  // D) Fecha con nombre de mes ("día 31 de octubre", "el 15 de noviembre", "31 de octubre")
+  const DAY_TOKEN = '(?:treinta\\s+y\\s+un[oa]|\\d{1,2}|primero|uno|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiuna|veintid[oó]s|veintitr[eé]s|veinticuatro|veinticinco|veintis[eé]is|veintisiete|veintiocho|veintinueve|treinta)';
+  const reMes = new RegExp('(?:^|\\s)(?:para\\s+)?(?:el\\s+)?(?:d[ií]a\\s+)?(' + DAY_TOKEN + ')\\s+de\\s+(' + MONTHS.join('|') + ')(?:\\s+de\\s+(\\d{4}))?(?=\\s|[.,;:!?]|$)', 'i');
+  const mMes = s.match(reMes);
+  if (mMes) {
+    const dd = parseSpanishNumber(mMes[1]);
+    const mm = MONTHS.indexOf(normStr(mMes[2]));
+    const yy = mMes[3] ? parseInt(mMes[3], 10) : baseDate.getFullYear();
+    if (dd >= 1 && dd <= 31 && mm >= 0) {
+      date = fmt(new Date(yy, mm, dd));
+      s = s.slice(0, mMes.index) + ' ' + s.slice(mMes.index + mMes[0].length);
     }
   }
 
-  // 7) Limpieza estricta del título (remover conectores o residuos de fecha/hora)
+  // E) Día del mes sin nombre de mes ("día 31", "el día 31", "para el día 31", "dia treinta y uno", "el 31")
+  if (!date) {
+    const reDia = new RegExp('(?:^|\\s)(?:para\\s+)?(?:el\\s+)?d[ií]a\\s+(' + DAY_TOKEN + ')(?=\\s|[.,;:!?]|$)', 'i');
+    const reElNum = /(?:^|\s)(?:para\s+el|el)\s+(\d{1,2})(?=\s|[.,;:!?]|$)/i;
+    const mDia = s.match(reDia) || s.match(reElNum);
+    if (mDia) {
+      const dd = parseSpanishNumber(mDia[1]);
+      if (dd >= 1 && dd <= 31) {
+        date = resolveDayOfMonth(dd, baseDate);
+        s = s.slice(0, mDia.index) + ' ' + s.slice(mDia.index + mDia[0].length);
+      }
+    }
+  }
+
+  // F) Expresiones relativas (pasado mañana, mañana, hoy, próximo lunes...)
+  if (!date) {
+    const mPM = s.match(/(?:^|\s)(?:para\s+)?pasado\s+ma[ñn]ana(?=\s|[.,;:!?]|$)/i);
+    if (mPM) { date = addDays(today, 2); s = s.slice(0, mPM.index) + ' ' + s.slice(mPM.index + mPM[0].length); }
+  }
+  if (!date) {
+    const mMan = s.match(/(?:^|\s)(?:para\s+)?ma[ñn]ana(?=\s|[.,;:!?]|$)/i);
+    if (mMan) { date = addDays(today, 1); s = s.slice(0, mMan.index) + ' ' + s.slice(mMan.index + mMan[0].length); }
+  }
+  if (!date) {
+    const mHoy = s.match(/(?:^|\s)(?:para\s+)?hoy(?=\s|[.,;:!?]|$)/i);
+    if (mHoy) { date = today; s = s.slice(0, mHoy.index) + ' ' + s.slice(mHoy.index + mHoy[0].length); }
+  }
+  if (!date) {
+    const mWd = s.match(/(?:^|\s)(?:para\s+)?(?:(?:el|este)\s+)?(?:pr[oó]ximo\s+)?(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)(?=\s|[.,;:!?]|$)/i);
+    if (mWd) {
+      const key = normStr(mWd[1]);
+      const diff = (WD[key] - parse(today).getDay() + 7) % 7 || 7;
+      date = addDays(today, diff);
+      s = s.slice(0, mWd.index) + ' ' + s.slice(mWd.index + mWd[0].length);
+    }
+  }
+
+  // G) Limpieza exhaustiva del título para asegurar que no quede ningún residuo temporal
+  s = s.replace(/\b(?:el\s+d[ií]a|d[ií]a)\s+(?:\d{1,2}|treinta\s+y\s+un[oa]|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|veinte|treinta)\b/gi, ' ');
+  s = s.replace(/\b(?:a\s+la[s]?)\s+(?:\d{1,2}(?::\d{2})?|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\b/gi, ' ');
   s = s.replace(/\s+/g, ' ').trim();
   s = s.replace(/^(?:por favor\s+)?(?:a[ñn]ad(?:e|ir|eme)|agrega(?:r|me)?|crea(?:r)?|apunta(?:r)?|anota(?:r)?|pon(?:me|er)?|programa(?:r)?|recu[eé]rdame|recordar(?:me)?|nueva\s+tarea|tarea|recordatorio)(?=\s|$)\s*/i, '');
-  s = s.replace(/\b(?:el\s+d[ií]a|d[ií]a)\s+\d{1,2}\b/gi, '');
-  s = s.replace(/\b(?:a\s+la[s]?)\s+\d{1,2}(?::\d{2})?\b/gi, '');
-  s = s.replace(/(?:\s+(?:el|la|los|las|a|al|de|del|para|en|y|por|d[ií]a))+$/i, '');
+  s = s.replace(/^(?:de\s+|que\s+|para\s+)/i, '');
+  s = s.replace(/(?:\s+(?:el|la|los|las|a|al|de|del|para|en|y|por|d[ií]a|hora|las))+$/i, '');
   s = s.replace(/^[\s,;:.]+|[\s,;:.]+$/g, '').trim();
 
   // Inferir categoría
-  const low = s.toLowerCase();
-  if (/estudiar|examen|repasar|apuntes|clase|tema|lectura/.test(low)) category = 'Study';
-  else if (/reuni[oó]n|trabajo|informe|cliente|correo|proyecto/.test(low)) category = 'Work';
-  else if (/entrenar|gimnasio|correr|deporte|pesas|cardio/.test(low)) category = 'Fitness';
-  else if (/m[eé]dico|agua|meditar|dormir|salud|pastilla/.test(low)) category = 'Health';
-  else if (/dise[ñn]ar|escribir|dibujar|m[uú]sica|idea/.test(low)) category = 'Creativity';
+  const low = normStr(s);
+  if (/estudiar|examen|repasar|apuntes|clase|tema|lectura|deberes/.test(low)) category = 'Study';
+  else if (/reunion|trabajo|informe|cliente|correo|proyecto|oficina/.test(low)) category = 'Work';
+  else if (/entrenar|gimnasio|correr|deporte|pesas|cardio|partido/.test(low)) category = 'Fitness';
+  else if (/medico|agua|meditar|dormir|salud|pastilla|dentista|cita/.test(low)) category = 'Health';
+  else if (/disenar|escribir|dibujar|musica|idea|pintar/.test(low)) category = 'Creativity';
 
   return {
-    title: s ? cap(s) : 'Tarea',
+    title: s ? cap(s) : 'Evento',
     date: date || sel,
     time: time || '',
     timeOfDay: inferTimeOfDay(time, timeOfDay || 'anytime'),
@@ -1086,20 +1193,22 @@ function parseVoiceLocal(text) {
   };
 }
 
+/* Procesamiento NLP con Gemini + Respaldo Local Garantizado */
 async function parseTaskWithGemini(phrase) {
-  const localFallback = parseVoiceLocal(phrase);
+  // Primero ejecutamos el extractor estricto local para tener una base limpia garantizada
+  const local = parseVoiceLocal(phrase);
   const apiKey = (S.settings.geminiKey || '').trim();
-  if (!apiKey) return localFallback;
+  if (!apiKey) return local;
 
-  const systemPrompt = `Extrae de la frase del usuario los siguientes campos en formato JSON estricto:
+  const systemPrompt = `Eres un extractor estructurado de agenda. Analiza la frase del usuario y devuelve EXCLUSIVAMENTE un objeto JSON con este esquema:
 {
-  "title": "ÚNICAMENTE el nombre limpio de la acción o evento, SIN incluir referencias al día, fecha ni hora (ejemplo: si dice 'comida día 31 a las 1', el title debe ser exclusivamente 'Comida')",
-  "date": "YYYY-MM-DD",
-  "time": "HH:MM en formato 24h (ejemplo: 'a las 1' de comida es '13:00') o null si no se menciona",
+  "title": "SOLO la acción o sustantivo limpio (ej. 'Comida'). PROHIBIDO incluir 'día X', 'a la X', 'a las X', 'mañana', 'hoy' ni horas en el título.",
+  "date": "YYYY-MM-DD (si dice 'día 31', usa el día 31 del mes de la fecha seleccionada ${sel}; hoy es ${todayStr()})",
+  "time": "HH:MM en formato 24h (ej. 'a la 1' o 'a las 1' para comida/mediodía es '13:00', 'a las 3' es '15:00') o null",
   "timeOfDay": "morning|afternoon|evening|anytime",
   "duration": número_en_minutos_o_null,
   "category": "Study|Work|Health|Fitness|Creativity|Personal"
-}. Considera que hoy es ${todayStr()} y el mes/fecha visualizado en el calendario es ${sel}. Devuelve solo JSON.`;
+}`;
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -1116,44 +1225,77 @@ async function parseTaskWithGemini(phrase) {
     const data = await res.json();
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
-    // Pasamos el título devuelto por Gemini por una limpieza adicional por seguridad
-    const cleanTitle = parseVoiceLocal(parsed.title || phrase).title;
+
+    // Limpieza final de seguridad sobre el título devuelto por la IA
+    const cleanedAiTitle = parseVoiceLocal(parsed.title || local.title).title;
+    const finalTime = /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : local.time;
+    const finalDate = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : local.date;
+
     return {
-      title: cleanTitle || localFallback.title,
-      date: /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : localFallback.date,
-      time: /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : localFallback.time,
-      timeOfDay: inferTimeOfDay(parsed.time || localFallback.time, parsed.timeOfDay || localFallback.timeOfDay),
-      duration: Number(parsed.duration) || localFallback.duration,
-      category: getCat(parsed.category || localFallback.category).id
+      title: cleanedAiTitle || local.title,
+      date: finalDate,
+      time: finalTime,
+      timeOfDay: inferTimeOfDay(finalTime, parsed.timeOfDay || local.timeOfDay),
+      duration: Number(parsed.duration) || local.duration,
+      category: getCat(parsed.category || local.category).id
     };
   } catch (err) {
-    return localFallback;
+    return local;
   }
 }
 
+/* Creación desde voz y conexión directa con el estado del calendario */
 async function handleVoiceTaskCreation(phrase) {
-  toast('✨ Procesando comando de voz...');
+  toast('✨ Procesando fecha y hora...');
   const p = await parseTaskWithGemini(phrase);
+
+  const targetDate = p.date || sel;
+  const targetTime = p.time || '';
+  const targetBlock = inferTimeOfDay(targetTime, p.timeOfDay || 'anytime');
+
   const ev = newEv({
     itemType: 'task',
     text: p.title,
-    date: p.date || sel,
-    time: p.time || '',
-    timeOfDay: p.timeOfDay || 'anytime',
+    date: targetDate,
+    time: targetTime,
+    timeOfDay: targetBlock,
     dur: p.duration || 15,
     category: p.category || 'Personal'
   });
+
   S.events.push(ev);
-  sel = ev.date;
+  // Conectar directamente con el calendario: seleccionar el día detectado y abrir su bloque horario
+  sel = targetDate;
+  S.ui.collapsedBlocks = (S.ui.collapsedBlocks || []).filter(b => b !== targetBlock);
+
   save();
   render();
-  toast(`✓ "${ev.text}" · ${shortDate(ev.date)}${ev.time ? ' a las ' + ev.time : ''}`);
+  toast(`✓ "${ev.text}" asignado al ${shortDate(ev.date)}${ev.time ? ' a las ' + ev.time : ''}`);
+}
+
+/* ============================ 2. VALIDACIÓN DE API KEY EN AJUSTES ============================ */
+async function verifyGeminiKey(apiKey) {
+  if (!apiKey || apiKey.length < 15) return false;
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: 'ok' }] }],
+        generationConfig: { maxOutputTokens: 2 }
+      })
+    });
+    return res.ok;
+  } catch (e) {
+    // Si no hay red en el momento de guardar pero tiene formato oficial de Google AI Studio (AIza...)
+    return /^AIza[0-9A-Za-z\-_]{30,}$/.test(apiKey);
+  }
 }
 
 /* ============================ 4. FLUJO DE CREACIÓN [+] (TAREA / RECORDATORIO) ============================ */
 let D = null;
 
-/* 4.1 Paso 1: Selección obligatoria entre Tarea o Recordatorio */
 function openTypeChoiceModal() {
   $('#modal').innerHTML = `
   <div class="modal-bg" data-a="mbg">
@@ -1212,7 +1354,6 @@ function openEditModal(id) {
   renderTaskSheet();
 }
 
-/* Sincronización sin sobrescribir las selecciones de los botones */
 function syncSheetDraft() {
   if (!D) return;
   const t = $('#fText');
@@ -1225,7 +1366,6 @@ function syncSheetDraft() {
   if (nt) D.notes = nt.value;
 }
 
-/* 4.2 Formulario sin micrófono, sin subtareas, con selectores desbloqueados y Mensual/Anual */
 function renderTaskSheet() {
   if (!D) return;
   const isEdit = !!D.id;
@@ -1263,23 +1403,19 @@ function renderTaskSheet() {
         ${isEdit ? `<button type="button" class="btn btn-danger" style="padding:7px 12px" data-a="delTask">${ic.trash} Eliminar</button>` : ''}
       </div>
 
-      <!-- Tipo de elemento cambiable -->
       <div class="seg mb-4">
         <button type="button" class="${!isRem ? 'on' : ''}" data-a="switchFormType" data-v="task">Tarea</button>
         <button type="button" class="${isRem ? 'on' : ''}" data-a="switchFormType" data-v="reminder">Recordatorio</button>
       </div>
 
-      <!-- Campo de título (únicamente entrada manual de texto, sin micrófono) -->
       <div class="label mb-1.5">Título</div>
       <div class="mb-4">
         <input type="text" id="fText" value="${esc(D.text)}" placeholder="Escribe el título manualmente..." maxlength="120" autocomplete="off">
       </div>
 
-      <!-- Categorías -->
       <div class="label mb-1.5">Categoría</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${catsHTML}</div>
 
-      <!-- Momentos del día -->
       <div class="label mb-1.5">Momento del día</div>
       <div class="flex flex-wrap gap-1.5 mb-3">${blocksHTML}</div>
 
@@ -1297,18 +1433,15 @@ function renderTaskSheet() {
         </div>
       </div>
 
-      <!-- Duración estimada -->
       <div class="label mb-1.5">Duración estimada</div>
       <div class="flex flex-wrap items-center gap-1.5 mb-4">
         ${dursHTML}
         <input type="number" id="fCustomDur" min="1" max="300" value="${DURATIONS.includes(Number(D.dur)) ? '' : D.dur}" placeholder="Otra (min)" style="width:105px;min-height:36px;padding:5px 10px;font-size:12px">
       </div>
 
-      <!-- Frecuencia de repetición (incluye Mensual y Anual) -->
       <div class="label mb-1.5">Frecuencia de repetición</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${repsHTML}</div>
 
-      <!-- Notas -->
       <div class="label mb-1.5">Notas</div>
       <textarea id="fNotes" placeholder="Notas o detalles adicionales...">${esc(D.notes)}</textarea>
 
@@ -1320,7 +1453,7 @@ function renderTaskSheet() {
   </div>`;
 }
 
-/* ============================ 2. PANTALLA PRINCIPAL Y CALENDARIO (SEMANAL Y MENSUAL) ============================ */
+/* ============================ PANTALLA PRINCIPAL Y CALENDARIO ============================ */
 function renderWeekView() {
   const td = todayStr();
   const mon = mondayOf(sel);
@@ -1412,7 +1545,6 @@ function renderTaskCard(e) {
     </div>`;
 }
 
-/* 2. Limpieza de interfaz: sin barra central de texto en Inicio */
 function viewHome() {
   const list = evOn(sel);
   const collapsed = S.ui.collapsedBlocks || [];
@@ -1751,7 +1883,7 @@ function tick() {
   document.title = P.running ? `${mmss(Math.max(0, P.remaining))} · FOCO` : 'Foco · Hábitos y productividad';
 }
 
-/* ============================ 1. PESTAÑA AJUSTES, THEMING Y SECCIÓN "STATS" ============================ */
+/* ============================ PESTAÑA AJUSTES Y ESTADO DE API KEY ============================ */
 function viewFocoStatsSub() {
   const st = getFocusStats();
   const hours = (st.totalMin / 60).toFixed(1);
@@ -1795,13 +1927,23 @@ function viewSettings() {
   const mStats = getMonthlyTaskCompletion();
   const fStats = getFocusStats();
   const hasKey = !!(S.settings.geminiKey || '').trim();
+  const isVerified = hasKey && S.settings.geminiVerified;
+
+  let badgeHTML = `<span class="api-badge"><span class="api-dot"></span>Sin configurar</span>`;
+  if (verifyingKey) {
+    badgeHTML = `<span class="api-badge"><span class="api-dot"></span>Verificando...</span>`;
+  } else if (isVerified) {
+    badgeHTML = `<span class="api-badge active"><span class="api-dot"></span>Activado</span>`;
+  } else if (hasKey && !S.settings.geminiVerified) {
+    badgeHTML = `<span class="api-badge error"><span class="api-dot"></span>Clave inválida</span>`;
+  }
 
   return `
     <div class="flex-none mb-3">
       <h1 class="text-xl font-extrabold">Ajustes</h1>
     </div>
     <div class="scroll">
-      <!-- 1.1 Modos de Visualización -->
+      <!-- Modos de Visualización -->
       <div class="card p-4 mb-3">
         <div class="label mb-2.5">Apariencia (Modo de visualización)</div>
         <div class="seg">
@@ -1810,7 +1952,7 @@ function viewSettings() {
         </div>
       </div>
 
-      <!-- 1.2 Sección "Stats" -->
+      <!-- Sección "Stats" -->
       <div class="card p-4 mb-3">
         <div class="flex items-center justify-between mb-2">
           <span class="label">Stats · ${esc(mStats.monthName)}</span>
@@ -1822,7 +1964,6 @@ function viewSettings() {
         </div>
         <div class="bar mb-4"><div style="width:${mStats.pct}%"></div></div>
 
-        <!-- Subapartado navegable "Foco stats" -->
         <div class="card2 p-3.5 flex items-center justify-between cursor-pointer" data-a="openFocoStats">
           <div>
             <div class="font-bold text-sm">Foco stats</div>
@@ -1835,18 +1976,20 @@ function viewSettings() {
         </div>
       </div>
 
-      <!-- Configuración de Google Gemini API -->
+      <!-- 2. Configuración y Estado de Google Gemini API Key -->
       <div class="card p-4 mb-3">
         <div class="flex items-center justify-between mb-2">
-          <span class="label">Google Gemini API</span>
-          <span class="text-xs font-bold">${hasKey ? '● Configurada' : '○ Modo local activo'}</span>
+          <span class="label">Google Gemini API Key</span>
+          ${badgeHTML}
         </div>
         <p class="muted text-xs mb-3 leading-relaxed">
           Introduce tu API Key gratuita de Google AI Studio para activar el reconocimiento de tareas en lenguaje natural.
         </p>
         <div class="flex gap-2">
           <input type="password" id="geminiKeyIn" value="${esc(S.settings.geminiKey)}" placeholder="AIzaSy..." autocomplete="off">
-          <button type="button" class="btn btn-primary" data-a="saveApiKey">Guardar</button>
+          <button type="button" class="btn btn-primary" data-a="saveApiKey" ${verifyingKey ? 'disabled' : ''}>
+            ${verifyingKey ? '...' : 'Guardar'}
+          </button>
         </div>
       </div>
 
@@ -1945,7 +2088,7 @@ const A = {
     startVoice('home', phrase => handleVoiceTaskCreation(phrase));
   },
 
-  /* Selectores del Formulario Modal (sin bloqueo) */
+  /* Selectores del Formulario Modal */
   setCat(d) { syncSheetDraft(); D.category = d.v; renderTaskSheet(); },
   setTod(d) { syncSheetDraft(); D.timeOfDay = d.v; renderTaskSheet(); },
   setDur(d) { syncSheetDraft(); D.dur = Number(d.v); renderTaskSheet(); },
@@ -2074,7 +2217,7 @@ const A = {
     tick();
   },
 
-  /* Ajustes y Stats */
+  /* Ajustes, Validación de API Key y Stats */
   setTheme(d) {
     S.settings.theme = d.v === 'light' ? 'light' : 'dark';
     save();
@@ -2082,15 +2225,29 @@ const A = {
   },
   openFocoStats() { S.ui.settingsSub = 'focoStats'; render(); },
   closeFocoStats() { S.ui.settingsSub = 'main'; render(); },
-  saveApiKey() {
+  async saveApiKey() {
     const inp = $('#geminiKeyIn');
-    S.settings.geminiKey = inp ? inp.value.trim() : '';
+    const key = inp ? inp.value.trim() : '';
+    if (!key) {
+      S.settings.geminiKey = '';
+      S.settings.geminiVerified = false;
+      save();
+      render();
+      toast('API Key eliminada');
+      return;
+    }
+    verifyingKey = true;
+    render();
+    const ok = await verifyGeminiKey(key);
+    verifyingKey = false;
+    S.settings.geminiKey = key;
+    S.settings.geminiVerified = ok;
     save();
     render();
-    toast(S.settings.geminiKey ? '🔑 Google Gemini API Key guardada' : 'API Key eliminada');
+    toast(ok ? '✓ API Key verificada y Activada' : '⚠️ La API Key introducida no pudo validarse');
   },
   exportJSON() {
-    const blob = new Blob([JSON.stringify({ app: 'foco', version: 6, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'foco', version: 7, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `foco-backup-${todayStr()}.json`;
@@ -2151,13 +2308,23 @@ document.addEventListener('submit', e => {
     const rawTitle = (D.text || '').trim();
     if (!rawTitle) { const i = $('#fText'); if (i) i.focus(); return; }
 
+    // Si el usuario escribió manualmente una fecha/hora en el título (ej. "comida día 31 a la 1"), extraerla también
+    const parsedFromTitle = parseVoiceLocal(rawTitle);
+    const hasExplicitDateInText = parsedFromTitle.date !== sel && /\b(?:d[ií]a|ma[ñn]ana|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b/i.test(rawTitle);
+    const hasExplicitTimeInText = !!parsedFromTitle.time && !D.time;
+
+    const finalTitle = (hasExplicitDateInText || hasExplicitTimeInText) ? parsedFromTitle.title : cap(rawTitle);
+    const finalDate = hasExplicitDateInText ? parsedFromTitle.date : (D.date || sel);
+    const finalTime = D.time || (hasExplicitTimeInText ? parsedFromTitle.time : '');
+    const finalBlock = finalTime ? inferTimeOfDay(finalTime, D.timeOfDay) : (D.timeOfDay || 'morning');
+
     const payload = {
       itemType: D.itemType || 'task',
-      text: cap(rawTitle),
-      date: D.date || sel,
+      text: finalTitle,
+      date: finalDate,
       category: D.category || 'Study',
-      time: D.time || '',
-      timeOfDay: D.timeOfDay || inferTimeOfDay(D.time, 'morning'),
+      time: finalTime,
+      timeOfDay: finalBlock,
       dur: Number(D.dur) || 15,
       repeat: REP_OPTIONS.includes(D.repeat) ? D.repeat : 'none',
       notes: D.notes || ''
@@ -2170,6 +2337,7 @@ document.addEventListener('submit', e => {
       S.events.push(newEv(payload));
     }
     sel = payload.date;
+    S.ui.collapsedBlocks = (S.ui.collapsedBlocks || []).filter(b => b !== finalBlock);
     save();
     closeModal();
     render();
@@ -2230,6 +2398,12 @@ function setupPWA() {
 setupPWA();
 if (!(S.pomo.running && S.pomo.endAt) && (S.pomo.remaining <= 0 || S.pomo.remaining > 3600)) {
   S.pomo.remaining = S.settings[S.pomo.phase] * 60;
+}
+// Si ya hay una clave guardada de antes pero aún no estaba marcada como verificada, validarla en segundo plano
+if (S.settings.geminiKey && !S.settings.geminiVerified) {
+  verifyGeminiKey(S.settings.geminiKey).then(ok => {
+    if (ok) { S.settings.geminiVerified = true; save(); render(); }
+  });
 }
 save();
 render();
