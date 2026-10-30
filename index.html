@@ -14,7 +14,7 @@
 <link rel="manifest" id="manifest-link" href="">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  /* 1.1 Modos de Visualización estrictos */
+  /* Modos de Visualización estrictos */
   :root, [data-theme="dark"] {
     color-scheme: dark;
     --bg: #000000;
@@ -199,7 +199,7 @@
   input:focus, textarea:focus, select:focus {
     border-color: var(--accent);
   }
-  textarea { resize: none; min-height: 80px; }
+  textarea { resize: none; min-height: 90px; }
 
   /* Selector de modo de calendario */
   .seg {
@@ -346,7 +346,7 @@
     border: 1px solid var(--line);
   }
 
-  /* Tarjeta de tarea / recordatorio */
+  /* Tarjeta de tarea y tarjeta de recordatorio rápido */
   .task-card {
     display: flex;
     align-items: center;
@@ -356,6 +356,19 @@
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 16px;
+    transition: all 0.15s ease;
+  }
+  .rem-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-left: 3.5px solid var(--orange);
+    border-radius: 14px;
+    cursor: pointer;
     transition: all 0.15s ease;
   }
   .cat-ico {
@@ -637,6 +650,13 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 const mondayOf = s => { const d = parse(s); const off = (d.getDay() + 6) % 7; d.setDate(d.getDate() - off); return fmt(d); };
 
+/* Modelos Gemini compatibles en orden de prioridad */
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
+];
+
 const DAYS_SHORT = [
   { l: 'L', name: 'Lun', v: 1 },
   { l: 'M', name: 'Mar', v: 2 },
@@ -714,7 +734,7 @@ const TABS = [
 const defaults = () => ({
   events: [],
   subjects: [],
-  settings: { work: 25, rest: 5, geminiKey: '', geminiVerified: false, theme: 'dark' },
+  settings: { work: 25, rest: 5, geminiKey: '', geminiVerified: false, geminiModel: 'gemini-2.5-flash', theme: 'dark' },
   pomo: { phase: 'work', remaining: 25 * 60, running: false, endAt: null, sessions: 0 },
   stats: { focusByDate: {}, activeDays: {} },
   ui: { tab: 'home', sub: 'list', calMode: 'week', settingsSub: 'main', openSubj: [], collapsedBlocks: [] }
@@ -739,6 +759,7 @@ function normalize(o) {
   s.settings.rest = clampMin(s.settings.rest);
   s.settings.geminiKey = String(s.settings.geminiKey || '').trim();
   s.settings.geminiVerified = !!s.settings.geminiVerified && !!s.settings.geminiKey;
+  if (!GEMINI_MODELS.includes(s.settings.geminiModel)) s.settings.geminiModel = 'gemini-2.5-flash';
   if (!['dark', 'light'].includes(s.settings.theme)) s.settings.theme = 'dark';
 
   s.pomo = Object.assign({}, d.pomo, o.pomo);
@@ -791,6 +812,7 @@ function load() {
 let S = load();
 let sel = todayStr();
 let verifyingKey = false;
+let lastApiError = '';
 
 const save = () => {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -880,7 +902,8 @@ function getMonthlyTaskCompletion() {
   let total = 0, completed = 0;
   for (let d = 1; d <= dim; d++) {
     const ds = `${y}-${pad(m + 1)}-${pad(d)}`;
-    const list = evOn(ds);
+    // Contabilizar solo tareas (los recordatorios son notas rápidas sin check)
+    const list = evOn(ds).filter(e => e.itemType !== 'reminder');
     total += list.length;
     completed += list.filter(e => isDone(e, ds)).length;
   }
@@ -997,7 +1020,7 @@ function startVoice(key, cb) {
   try { r.start(); } catch (e) { toast('No se pudo activar el micrófono'); }
 }
 
-/* Diccionario de números en español (1 al 31) para días y horas habladas */
+/* Diccionario de números en español (1 al 31) */
 const SPANISH_NUMS = {
   un: 1, uno: 1, una: 1, primero: 1,
   dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
@@ -1026,7 +1049,6 @@ function resolveDayOfMonth(dd, baseDate) {
   if (dd <= lastDay) {
     return fmt(new Date(yy, mm, dd));
   }
-  // Si el mes actual no tiene ese día (ej. día 31 en un mes de 30), buscar el mes más cercano o ajustar
   let nextLastDay = new Date(yy, mm + 2, 0).getDate();
   if (dd <= nextLastDay) {
     return fmt(new Date(yy, mm + 1, dd));
@@ -1034,21 +1056,19 @@ function resolveDayOfMonth(dd, baseDate) {
   return fmt(new Date(yy, mm, lastDay));
 }
 
-/* 1. Extracción estricta local: separa título de día y hora sin dejar residuos en el texto */
 function parseVoiceLocal(rawPhrase) {
   let s = ' ' + String(rawPhrase || '').replace(/\s+/g, ' ').trim() + ' ';
   let date = null, time = null, timeOfDay = null, duration = null, category = 'Personal';
   const today = todayStr();
   const baseDate = parse(sel || today);
 
-  // A) Duración ("durante 30 minutos", "por 15 min")
+  // A) Duración
   s = s.replace(/\s(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min|m)(?=\s|[.,;:!?]|$)/gi, (_, d) => {
     duration = parseInt(d, 10);
     return ' ';
   });
 
-  // B) Hora hablada o numérica:
-  // Soporta: "a la 1", "a las 1", "a la una", "a las 13:00", "a las 2 y media", "a las 4 de la tarde", "a las 14h"
+  // B) Hora hablada o numérica ("a la 1", "a las 1", "a la una", "a las 13:00")
   const HOUR_TOKEN = '(?:\\d{1,2}|una|uno|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiuna|veintid[oó]s|veintitr[eé]s)';
   const reHora = new RegExp(
     '(?:^|\\s)(?:(?:a|sobre|hacia|para|desde)\\s+)?(?:la|las)\\s+(' + HOUR_TOKEN + ')' +
@@ -1074,7 +1094,6 @@ function parseVoiceLocal(rawPhrase) {
     else if (per === 'noche') { if (h === 12) h = 0; else if (h < 12) h += 12; }
     else if (per === 'manana' || per === 'madrugada') { if (h === 12) h = 0; }
     else if (h >= 1 && h <= 7) {
-      // "comida día 31 a la 1" o "a las 1" -> 13:00
       h += 12;
     }
     if (mHora[4]) {
@@ -1089,7 +1108,6 @@ function parseVoiceLocal(rawPhrase) {
     }
   }
 
-  // Hora formato directo "a las 13:30" o "13:30"
   if (!time) {
     const mDirect = s.match(/(?:^|\s)(?:a\s+las?\s+)?(\d{1,2}):(\d{2})(?:\s*h)?(?=\s|[.,;:!?]|$)/i);
     if (mDirect) {
@@ -1101,13 +1119,12 @@ function parseVoiceLocal(rawPhrase) {
     }
   }
 
-  // Mediodía / Medianoche
   if (!time) {
     const mMid = s.match(/(?:^|\s)(?:al\s+)?mediod[ií]a(?=\s|[.,;:!?]|$)/i);
     if (mMid) { time = '12:00'; s = s.slice(0, mMid.index) + ' ' + s.slice(mMid.index + mMid[0].length); }
   }
 
-  // C) Momento del día explícito ("por la mañana", "por la tarde", "por la noche")
+  // C) Momento del día explícito
   const mTod = s.match(/(?:^|\s)(?:por|en|de)\s+la\s+(ma[ñn]ana|tarde|noche)(?=\s|[.,;:!?]|$)/i);
   if (mTod) {
     const p = normStr(mTod[1]);
@@ -1115,7 +1132,7 @@ function parseVoiceLocal(rawPhrase) {
     s = s.slice(0, mTod.index) + ' ' + s.slice(mTod.index + mTod[0].length);
   }
 
-  // D) Fecha con nombre de mes ("día 31 de octubre", "el 15 de noviembre", "31 de octubre")
+  // D) Fecha con nombre de mes
   const DAY_TOKEN = '(?:treinta\\s+y\\s+un[oa]|\\d{1,2}|primero|uno|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiuna|veintid[oó]s|veintitr[eé]s|veinticuatro|veinticinco|veintis[eé]is|veintisiete|veintiocho|veintinueve|treinta)';
   const reMes = new RegExp('(?:^|\\s)(?:para\\s+)?(?:el\\s+)?(?:d[ií]a\\s+)?(' + DAY_TOKEN + ')\\s+de\\s+(' + MONTHS.join('|') + ')(?:\\s+de\\s+(\\d{4}))?(?=\\s|[.,;:!?]|$)', 'i');
   const mMes = s.match(reMes);
@@ -1129,7 +1146,7 @@ function parseVoiceLocal(rawPhrase) {
     }
   }
 
-  // E) Día del mes sin nombre de mes ("día 31", "el día 31", "para el día 31", "dia treinta y uno", "el 31")
+  // E) Día del mes sin nombre de mes ("día 31", "el 31")
   if (!date) {
     const reDia = new RegExp('(?:^|\\s)(?:para\\s+)?(?:el\\s+)?d[ií]a\\s+(' + DAY_TOKEN + ')(?=\\s|[.,;:!?]|$)', 'i');
     const reElNum = /(?:^|\s)(?:para\s+el|el)\s+(\d{1,2})(?=\s|[.,;:!?]|$)/i;
@@ -1143,7 +1160,7 @@ function parseVoiceLocal(rawPhrase) {
     }
   }
 
-  // F) Expresiones relativas (pasado mañana, mañana, hoy, próximo lunes...)
+  // F) Expresiones relativas
   if (!date) {
     const mPM = s.match(/(?:^|\s)(?:para\s+)?pasado\s+ma[ñn]ana(?=\s|[.,;:!?]|$)/i);
     if (mPM) { date = addDays(today, 2); s = s.slice(0, mPM.index) + ' ' + s.slice(mPM.index + mPM[0].length); }
@@ -1166,7 +1183,7 @@ function parseVoiceLocal(rawPhrase) {
     }
   }
 
-  // G) Limpieza exhaustiva del título para asegurar que no quede ningún residuo temporal
+  // G) Limpieza exhaustiva del título
   s = s.replace(/\b(?:el\s+d[ií]a|d[ií]a)\s+(?:\d{1,2}|treinta\s+y\s+un[oa]|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|veinte|treinta)\b/gi, ' ');
   s = s.replace(/\b(?:a\s+la[s]?)\s+(?:\d{1,2}(?::\d{2})?|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\b/gi, ' ');
   s = s.replace(/\s+/g, ' ').trim();
@@ -1175,7 +1192,6 @@ function parseVoiceLocal(rawPhrase) {
   s = s.replace(/(?:\s+(?:el|la|los|las|a|al|de|del|para|en|y|por|d[ií]a|hora|las))+$/i, '');
   s = s.replace(/^[\s,;:.]+|[\s,;:.]+$/g, '').trim();
 
-  // Inferir categoría
   const low = normStr(s);
   if (/estudiar|examen|repasar|apuntes|clase|tema|lectura|deberes/.test(low)) category = 'Study';
   else if (/reunion|trabajo|informe|cliente|correo|proyecto|oficina/.test(low)) category = 'Work';
@@ -1193,9 +1209,8 @@ function parseVoiceLocal(rawPhrase) {
   };
 }
 
-/* Procesamiento NLP con Gemini + Respaldo Local Garantizado */
+/* Procesamiento con Gemini probando el modelo verificado o la lista de modelos activos */
 async function parseTaskWithGemini(phrase) {
-  // Primero ejecutamos el extractor estricto local para tener una base limpia garantizada
   const local = parseVoiceLocal(phrase);
   const apiKey = (S.settings.geminiKey || '').trim();
   if (!apiKey) return local;
@@ -1210,41 +1225,47 @@ async function parseTaskWithGemini(phrase) {
   "category": "Study|Work|Health|Fitness|Creativity|Personal"
 }`;
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: 'user', parts: [{ text: phrase }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.0 }
-      })
-    });
-    if (!res.ok) throw new Error('API Error');
-    const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+  const modelsToTry = [
+    S.settings.geminiModel || 'gemini-2.5-flash',
+    ...GEMINI_MODELS.filter(m => m !== S.settings.geminiModel)
+  ];
 
-    // Limpieza final de seguridad sobre el título devuelto por la IA
-    const cleanedAiTitle = parseVoiceLocal(parsed.title || local.title).title;
-    const finalTime = /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : local.time;
-    const finalDate = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : local.date;
+  for (const model of modelsToTry) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: phrase }] }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0.0 }
+        })
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
 
-    return {
-      title: cleanedAiTitle || local.title,
-      date: finalDate,
-      time: finalTime,
-      timeOfDay: inferTimeOfDay(finalTime, parsed.timeOfDay || local.timeOfDay),
-      duration: Number(parsed.duration) || local.duration,
-      category: getCat(parsed.category || local.category).id
-    };
-  } catch (err) {
-    return local;
+      const cleanedAiTitle = parseVoiceLocal(parsed.title || local.title).title;
+      const finalTime = /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : local.time;
+      const finalDate = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : local.date;
+
+      return {
+        title: cleanedAiTitle || local.title,
+        date: finalDate,
+        time: finalTime,
+        timeOfDay: inferTimeOfDay(finalTime, parsed.timeOfDay || local.timeOfDay),
+        duration: Number(parsed.duration) || local.duration,
+        category: getCat(parsed.category || local.category).id
+      };
+    } catch (err) {
+      // Continúa al siguiente modelo disponible o usa el extractor local
+    }
   }
+  return local;
 }
 
-/* Creación desde voz y conexión directa con el estado del calendario */
 async function handleVoiceTaskCreation(phrase) {
   toast('✨ Procesando fecha y hora...');
   const p = await parseTaskWithGemini(phrase);
@@ -1264,7 +1285,6 @@ async function handleVoiceTaskCreation(phrase) {
   });
 
   S.events.push(ev);
-  // Conectar directamente con el calendario: seleccionar el día detectado y abrir su bloque horario
   sel = targetDate;
   S.ui.collapsedBlocks = (S.ui.collapsedBlocks || []).filter(b => b !== targetBlock);
 
@@ -1273,27 +1293,51 @@ async function handleVoiceTaskCreation(phrase) {
   toast(`✓ "${ev.text}" asignado al ${shortDate(ev.date)}${ev.time ? ' a las ' + ev.time : ''}`);
 }
 
-/* ============================ 2. VALIDACIÓN DE API KEY EN AJUSTES ============================ */
-async function verifyGeminiKey(apiKey) {
-  if (!apiKey || apiKey.length < 15) return false;
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: 'ok' }] }],
-        generationConfig: { maxOutputTokens: 2 }
-      })
-    });
-    return res.ok;
-  } catch (e) {
-    // Si no hay red en el momento de guardar pero tiene formato oficial de Google AI Studio (AIza...)
-    return /^AIza[0-9A-Za-z\-_]{30,}$/.test(apiKey);
+/* ============================ VALIDACIÓN MULTI-MODELO DE API KEY ============================ */
+async function verifyGeminiKey(rawKey) {
+  const apiKey = String(rawKey || '').replace(/\s+/g, '');
+  lastApiError = '';
+  if (!apiKey || apiKey.length < 15) {
+    lastApiError = 'La clave es demasiado corta.';
+    return false;
   }
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: 'ok' }] }],
+          generationConfig: { maxOutputTokens: 2 }
+        })
+      });
+      if (res.ok) {
+        S.settings.geminiModel = model;
+        lastApiError = '';
+        return true;
+      }
+      const errData = await res.json().catch(() => ({}));
+      const msg = errData?.error?.message || `Error HTTP ${res.status}`;
+      // Si la clave en sí es inválida o tiene restricción de dominio/API, no hace falta probar más modelos
+      if (res.status === 400 || res.status === 403) {
+        lastApiError = msg;
+      }
+    } catch (e) {
+      lastApiError = 'Sin conexión o petición bloqueada por el navegador.';
+    }
+  }
+
+  // Si empieza por AIza y el fallo fue por abrir el archivo localmente (file://) o cuota temporal, permitir activarla
+  if (/^AIza[0-9A-Za-z\-_]{30,}$/.test(apiKey) && !/API key not valid/i.test(lastApiError)) {
+    lastApiError = '';
+    return true;
+  }
+  return false;
 }
 
-/* ============================ 4. FLUJO DE CREACIÓN [+] (TAREA / RECORDATORIO) ============================ */
+/* ============================ FLUJO DE CREACIÓN [+] (TAREA vs RECORDATORIO SIMPLE) ============================ */
 let D = null;
 
 function openTypeChoiceModal() {
@@ -1310,9 +1354,9 @@ function openTypeChoiceModal() {
           <span class="muted text-[11px] text-center">Con duración, bloque y categoría</span>
         </button>
         <button type="button" class="card2 p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-[var(--accent)] transition" data-a="chooseType" data-v="reminder">
-          <span class="text-3xl">🔔</span>
+          <span class="text-3xl">📌</span>
           <span class="font-bold text-base">Recordatorio</span>
-          <span class="muted text-[11px] text-center">Aviso puntual o periódico</span>
+          <span class="muted text-[11px] text-center">Apunte rápido (solo título y notas)</span>
         </button>
       </div>
       <button type="button" class="btn w-full" data-a="mclose">Cancelar</button>
@@ -1366,53 +1410,35 @@ function syncSheetDraft() {
   if (nt) D.notes = nt.value;
 }
 
+/* Si es Recordatorio, muestra ÚNICAMENTE Título y Notas */
 function renderTaskSheet() {
   if (!D) return;
   const isEdit = !!D.id;
   const isRem = D.itemType === 'reminder';
 
-  const catsHTML = CATEGORIES.map(c => `
-    <button type="button" class="chip ${D.category === c.id ? 'on' : ''}" data-a="setCat" data-v="${c.id}">
-      <span>${c.icon}</span><span>${c.label}</span>
-    </button>`).join('');
+  let extraTaskFieldsHTML = '';
+  if (!isRem) {
+    const catsHTML = CATEGORIES.map(c => `
+      <button type="button" class="chip ${D.category === c.id ? 'on' : ''}" data-a="setCat" data-v="${c.id}">
+        <span>${c.icon}</span><span>${c.label}</span>
+      </button>`).join('');
 
-  const blocksHTML = TIME_BLOCKS.map(b => `
-    <button type="button" class="chip ${D.timeOfDay === b.id ? 'on' : ''}" data-a="setTod" data-v="${b.id}">
-      <span>${b.icon}</span><span>${b.label}</span>
-    </button>`).join('');
+    const blocksHTML = TIME_BLOCKS.map(b => `
+      <button type="button" class="chip ${D.timeOfDay === b.id ? 'on' : ''}" data-a="setTod" data-v="${b.id}">
+        <span>${b.icon}</span><span>${b.label}</span>
+      </button>`).join('');
 
-  const dursHTML = DURATIONS.map(m => `
-    <button type="button" class="chip ${Number(D.dur) === m ? 'on' : ''}" data-a="setDur" data-v="${m}">
-      ${m} min
-    </button>`).join('');
+    const dursHTML = DURATIONS.map(m => `
+      <button type="button" class="chip ${Number(D.dur) === m ? 'on' : ''}" data-a="setDur" data-v="${m}">
+        ${m} min
+      </button>`).join('');
 
-  const repsHTML = REP_OPTIONS.map(r => `
-    <button type="button" class="chip ${D.repeat === r ? 'on' : ''}" data-a="setRep" data-v="${r}">
-      ${REP_LABEL[r]}
-    </button>`).join('');
+    const repsHTML = REP_OPTIONS.map(r => `
+      <button type="button" class="chip ${D.repeat === r ? 'on' : ''}" data-a="setRep" data-v="${r}">
+        ${REP_LABEL[r]}
+      </button>`).join('');
 
-  $('#modal').innerHTML = `
-  <div class="modal-bg" data-a="mbg">
-    <form class="modal-sheet" data-form="saveTask">
-      <div class="sheet-handle"></div>
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">${isRem ? '🔔' : '✅'}</span>
-          <span class="font-bold text-lg">${isEdit ? (isRem ? 'Editar recordatorio' : 'Editar tarea') : (isRem ? 'Nuevo recordatorio' : 'Nueva tarea')}</span>
-        </div>
-        ${isEdit ? `<button type="button" class="btn btn-danger" style="padding:7px 12px" data-a="delTask">${ic.trash} Eliminar</button>` : ''}
-      </div>
-
-      <div class="seg mb-4">
-        <button type="button" class="${!isRem ? 'on' : ''}" data-a="switchFormType" data-v="task">Tarea</button>
-        <button type="button" class="${isRem ? 'on' : ''}" data-a="switchFormType" data-v="reminder">Recordatorio</button>
-      </div>
-
-      <div class="label mb-1.5">Título</div>
-      <div class="mb-4">
-        <input type="text" id="fText" value="${esc(D.text)}" placeholder="Escribe el título manualmente..." maxlength="120" autocomplete="off">
-      </div>
-
+    extraTaskFieldsHTML = `
       <div class="label mb-1.5">Categoría</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${catsHTML}</div>
 
@@ -1441,9 +1467,35 @@ function renderTaskSheet() {
 
       <div class="label mb-1.5">Frecuencia de repetición</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${repsHTML}</div>
+    `;
+  }
+
+  $('#modal').innerHTML = `
+  <div class="modal-bg" data-a="mbg">
+    <form class="modal-sheet" data-form="saveTask">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">${isRem ? '📌' : '✅'}</span>
+          <span class="font-bold text-lg">${isEdit ? (isRem ? 'Editar recordatorio' : 'Editar tarea') : (isRem ? 'Nuevo recordatorio' : 'Nueva tarea')}</span>
+        </div>
+        ${isEdit ? `<button type="button" class="btn btn-danger" style="padding:7px 12px" data-a="delTask">${ic.trash} Eliminar</button>` : ''}
+      </div>
+
+      <div class="seg mb-4">
+        <button type="button" class="${!isRem ? 'on' : ''}" data-a="switchFormType" data-v="task">Tarea</button>
+        <button type="button" class="${isRem ? 'on' : ''}" data-a="switchFormType" data-v="reminder">Recordatorio</button>
+      </div>
+
+      <div class="label mb-1.5">Título</div>
+      <div class="mb-4">
+        <input type="text" id="fText" value="${esc(D.text)}" placeholder="${isRem ? '¿Qué quieres recordar o apuntar?' : 'Escribe el título de la tarea...'}" maxlength="120" autocomplete="off">
+      </div>
+
+      ${extraTaskFieldsHTML}
 
       <div class="label mb-1.5">Notas</div>
-      <textarea id="fNotes" placeholder="Notas o detalles adicionales...">${esc(D.notes)}</textarea>
+      <textarea id="fNotes" placeholder="${isRem ? 'Escribe tus notas rápidas aquí...' : 'Notas o detalles adicionales...'}">${esc(D.notes)}</textarea>
 
       <div class="flex gap-2 mt-5">
         <button type="button" class="btn flex-1" data-a="mclose">Cancelar</button>
@@ -1451,6 +1503,7 @@ function renderTaskSheet() {
       </div>
     </form>
   </div>`;
+  setTimeout(() => { const i = $('#fText'); if (i && !isEdit) i.focus(); }, 30);
 }
 
 /* ============================ PANTALLA PRINCIPAL Y CALENDARIO ============================ */
@@ -1462,12 +1515,12 @@ function renderWeekView() {
     const ds = addDays(mon, i);
     const d = parse(ds);
     const dayObj = DAYS_SHORT[i];
-    const hasTasks = evOn(ds).some(e => !isDone(e, ds));
+    const hasItems = evOn(ds).some(e => e.itemType === 'reminder' || !isDone(e, ds));
     pills += `
       <div class="day-pill ${ds === sel ? 'sel' : ''} ${ds === td ? 'today' : ''}" data-a="selDay" data-v="${ds}">
         <span class="d-name">${dayObj.l}</span>
         <span class="d-num">${d.getDate()}</span>
-        ${hasTasks ? '<span class="dot-ind"></span>' : '<span style="height:8px"></span>'}
+        ${hasItems ? '<span class="dot-ind"></span>' : '<span style="height:8px"></span>'}
       </div>`;
   }
   return `<div class="week-strip">${pills}</div>`;
@@ -1484,11 +1537,11 @@ function renderMonthView() {
   for (let i = 0; i < firstOffset; i++) cells += `<div></div>`;
   for (let day = 1; day <= daysInMonth; day++) {
     const ds = `${y}-${pad(m + 1)}-${pad(day)}`;
-    const hasTasks = evOn(ds).some(e => !isDone(e, ds));
+    const hasItems = evOn(ds).some(e => e.itemType === 'reminder' || !isDone(e, ds));
     cells += `
       <div class="m-cell ${ds === sel ? 'sel' : ''} ${ds === td ? 'today' : ''}" data-a="selDay" data-v="${ds}">
         <span>${day}</span>
-        ${hasTasks ? '<span class="m-dot"></span>' : ''}
+        ${hasItems ? '<span class="m-dot"></span>' : ''}
       </div>`;
   }
   return `<div class="card p-2.5"><div class="month-grid">${cells}</div></div>`;
@@ -1519,19 +1572,28 @@ function renderCalendarSection() {
     </div>`;
 }
 
+function renderReminderCard(e) {
+  return `
+    <div class="rem-card" data-a="editTask" data-v="${e.id}">
+      <div class="text-lg leading-none mt-0.5">📌</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-[14.5px] leading-snug break-words">${esc(e.text)}</div>
+        ${e.notes ? `<div class="muted text-xs mt-1 whitespace-pre-wrap break-words">${esc(e.notes)}</div>` : ''}
+      </div>
+    </div>`;
+}
+
 function renderTaskCard(e) {
   const done = isDone(e, sel);
   const cat = getCat(e.category);
-  const isRem = e.itemType === 'reminder';
   const meta = [];
-  if (isRem) meta.push('🔔 Recordatorio');
-  if (e.dur && !isRem) meta.push(`⏱ ${e.dur}m`);
+  if (e.dur) meta.push(`⏱ ${e.dur}m`);
   if (e.time) meta.push(`🕒 ${e.time}`);
   if (e.repeat && e.repeat !== 'none') meta.push(`↻ ${REP_LABEL[e.repeat]}`);
 
   return `
     <div class="task-card">
-      <div class="cat-ico" data-a="editTask" data-v="${e.id}" style="cursor:pointer">${isRem ? '🔔' : cat.icon}</div>
+      <div class="cat-ico" data-a="editTask" data-v="${e.id}" style="cursor:pointer">${cat.icon}</div>
       <div class="flex-1 min-w-0 cursor-pointer" data-a="editTask" data-v="${e.id}">
         <div class="font-semibold text-[15px] leading-snug break-words ${done ? 'done-text' : ''}">${esc(e.text)}</div>
         <div class="flex flex-wrap items-center gap-2 mt-1 text-xs muted">
@@ -1546,24 +1608,36 @@ function renderTaskCard(e) {
 }
 
 function viewHome() {
-  const list = evOn(sel);
+  const allItems = evOn(sel);
+  const reminders = allItems.filter(e => e.itemType === 'reminder');
+  const tasks = allItems.filter(e => e.itemType !== 'reminder');
   const collapsed = S.ui.collapsedBlocks || [];
 
-  let blocksContent = '';
-  if (list.length === 0) {
-    blocksContent = `
+  let contentHTML = '';
+  if (allItems.length === 0) {
+    contentHTML = `
       <div class="card p-6 text-center my-auto">
         <div class="text-3xl mb-2">📅</div>
         <div class="font-bold text-base mb-1">${esc(longDate(sel))}</div>
         <div class="muted text-xs">No hay tareas ni recordatorios para este día.<br>Pulsa <b>+</b> o usa el micrófono.</div>
       </div>`;
   } else {
+    // Mostrar primero los Recordatorios rápidos (notas sin check)
+    if (reminders.length > 0) {
+      contentHTML += `
+        <div class="mb-3">
+          <div class="label px-1 mb-1.5">📌 Recordatorios y notas rápidas</div>
+          ${reminders.map(renderReminderCard).join('')}
+        </div>`;
+    }
+
+    // Mostrar las Tareas organizadas por bloques del día
     TIME_BLOCKS.forEach(b => {
-      const bTasks = list.filter(e => (e.timeOfDay || inferTimeOfDay(e.time, 'anytime')) === b.id);
+      const bTasks = tasks.filter(e => (e.timeOfDay || inferTimeOfDay(e.time, 'anytime')) === b.id);
       if (!bTasks.length) return;
       const pendCount = bTasks.filter(e => !isDone(e, sel)).length;
       const isCol = collapsed.includes(b.id);
-      blocksContent += `
+      contentHTML += `
         <div class="mb-2">
           <div class="block-hdr" data-a="toggleBlock" data-v="${b.id}">
             <div class="flex items-center gap-2">
@@ -1582,7 +1656,7 @@ function viewHome() {
 
   return `
     ${renderCalendarSection()}
-    <div class="scroll" id="taskList">${blocksContent}</div>
+    <div class="scroll" id="taskList">${contentHTML}</div>
     <div class="qbar">
       <button type="button" class="sq" data-a="openAdd" aria-label="Crear tarea o recordatorio">${ic.plusBig}</button>
       <button type="button" class="sq" data-a="micHome" data-mic="home" aria-label="Dictar por voz">${ic.mic}</button>
@@ -1947,8 +2021,8 @@ function viewSettings() {
       <div class="card p-4 mb-3">
         <div class="label mb-2.5">Apariencia (Modo de visualización)</div>
         <div class="seg">
-          <button type="button" class="${th === 'light' ? 'on' : ''}" data-a="setTheme" data-v="light">☀ Modo Normal (Blanco / Naranja)</button>
-          <button type="button" class="${th === 'dark' ? 'on' : ''}" data-a="setTheme" data-v="dark">☾ Modo Oscuro (Negro / Blanco)</button>
+          <button type="button" class="${th === 'light' ? 'on' : ''}" data-a="setTheme" data-v="light">☀ Modo Normal </button>
+          <button type="button" class="${th === 'dark' ? 'on' : ''}" data-a="setTheme" data-v="dark">☾ Modo Oscuro </button>
         </div>
       </div>
 
@@ -1976,7 +2050,7 @@ function viewSettings() {
         </div>
       </div>
 
-      <!-- 2. Configuración y Estado de Google Gemini API Key -->
+      <!-- Configuración y Estado de Google Gemini API Key -->
       <div class="card p-4 mb-3">
         <div class="flex items-center justify-between mb-2">
           <span class="label">Google Gemini API Key</span>
@@ -1991,6 +2065,7 @@ function viewSettings() {
             ${verifyingKey ? '...' : 'Guardar'}
           </button>
         </div>
+        ${lastApiError ? `<div class="text-xs mt-2" style="color:var(--danger)">Detalle: ${esc(lastApiError)}</div>` : ''}
       </div>
 
       <!-- Gestión de datos -->
@@ -2227,10 +2302,11 @@ const A = {
   closeFocoStats() { S.ui.settingsSub = 'main'; render(); },
   async saveApiKey() {
     const inp = $('#geminiKeyIn');
-    const key = inp ? inp.value.trim() : '';
+    const key = inp ? inp.value.replace(/\s+/g, '') : '';
     if (!key) {
       S.settings.geminiKey = '';
       S.settings.geminiVerified = false;
+      lastApiError = '';
       save();
       render();
       toast('API Key eliminada');
@@ -2244,10 +2320,10 @@ const A = {
     S.settings.geminiVerified = ok;
     save();
     render();
-    toast(ok ? '✓ API Key verificada y Activada' : '⚠️ La API Key introducida no pudo validarse');
+    toast(ok ? '✓ API Key verificada y Activada' : '⚠️ Error al validar la clave API');
   },
   exportJSON() {
-    const blob = new Blob([JSON.stringify({ app: 'foco', version: 7, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'foco', version: 8, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `foco-backup-${todayStr()}.json`;
@@ -2302,13 +2378,41 @@ document.addEventListener('submit', e => {
 
   if (kind === 'saveTask') {
     syncSheetDraft();
-    const cd = $('#fCustomDur');
-    if (cd && cd.value) D.dur = clampMin(cd.value);
+    const isRem = D.itemType === 'reminder';
 
     const rawTitle = (D.text || '').trim();
     if (!rawTitle) { const i = $('#fText'); if (i) i.focus(); return; }
 
-    // Si el usuario escribió manualmente una fecha/hora en el título (ej. "comida día 31 a la 1"), extraerla también
+    // Si es Recordatorio, guardarlo de forma rápida solo con título y notas en el día seleccionado
+    if (isRem) {
+      const payload = {
+        itemType: 'reminder',
+        text: cap(rawTitle),
+        date: D.date || sel,
+        category: 'Personal',
+        time: '',
+        timeOfDay: 'anytime',
+        dur: 0,
+        repeat: 'none',
+        notes: (D.notes || '').trim()
+      };
+      if (D.id) {
+        const ev = S.events.find(x => x.id === D.id);
+        if (ev) Object.assign(ev, payload);
+      } else {
+        S.events.push(newEv(payload));
+      }
+      save();
+      closeModal();
+      render();
+      toast('📌 Recordatorio guardado');
+      return;
+    }
+
+    // Si es Tarea completa
+    const cd = $('#fCustomDur');
+    if (cd && cd.value) D.dur = clampMin(cd.value);
+
     const parsedFromTitle = parseVoiceLocal(rawTitle);
     const hasExplicitDateInText = parsedFromTitle.date !== sel && /\b(?:d[ií]a|ma[ñn]ana|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b/i.test(rawTitle);
     const hasExplicitTimeInText = !!parsedFromTitle.time && !D.time;
@@ -2319,7 +2423,7 @@ document.addEventListener('submit', e => {
     const finalBlock = finalTime ? inferTimeOfDay(finalTime, D.timeOfDay) : (D.timeOfDay || 'morning');
 
     const payload = {
-      itemType: D.itemType || 'task',
+      itemType: 'task',
       text: finalTitle,
       date: finalDate,
       category: D.category || 'Study',
@@ -2341,7 +2445,7 @@ document.addEventListener('submit', e => {
     save();
     closeModal();
     render();
-    toast(payload.itemType === 'reminder' ? '🔔 Recordatorio guardado' : '✓ Tarea guardada');
+    toast('✓ Tarea guardada');
   } else if (kind === 'ask') {
     const v = ($('#askInput') || {}).value.trim();
     if (!v) return;
@@ -2399,7 +2503,6 @@ setupPWA();
 if (!(S.pomo.running && S.pomo.endAt) && (S.pomo.remaining <= 0 || S.pomo.remaining > 3600)) {
   S.pomo.remaining = S.settings[S.pomo.phase] * 60;
 }
-// Si ya hay una clave guardada de antes pero aún no estaba marcada como verificada, validarla en segundo plano
 if (S.settings.geminiKey && !S.settings.geminiVerified) {
   verifyGeminiKey(S.settings.geminiKey).then(ok => {
     if (ok) { S.settings.geminiVerified = true; save(); render(); }
