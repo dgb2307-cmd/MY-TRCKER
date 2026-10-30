@@ -4,35 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Foco · Hábitos y productividad</title>
-<meta name="theme-color" id="theme-meta" content="#0E111A">
+<meta name="theme-color" id="theme-meta" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Foco">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFFFFF'/%3E%3Ccircle cx='32' cy='35' r='18' fill='none' stroke='%23FF6B00' stroke-width='5'/%3E%3Cpath d='M32 24v11l7 5' fill='none' stroke='%23FF6B00' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h12' fill='none' stroke='%23FF6B00' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" id="apple-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFFFFF'/%3E%3Ccircle cx='32' cy='35' r='18' fill='none' stroke='%23FF6B00' stroke-width='5'/%3E%3Cpath d='M32 24v11l7 5' fill='none' stroke='%23FF6B00' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h12' fill='none' stroke='%23FF6B00' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFFFFF'/%3E%3Ccircle cx='32' cy='35' r='18' fill='none' stroke='%23FF7A00' stroke-width='5'/%3E%3Cpath d='M32 24v11l7 5' fill='none' stroke='%23FF7A00' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h12' fill='none' stroke='%23FF7A00' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" id="apple-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFFFFF'/%3E%3Ccircle cx='32' cy='35' r='18' fill='none' stroke='%23FF7A00' stroke-width='5'/%3E%3Cpath d='M32 24v11l7 5' fill='none' stroke='%23FF7A00' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M26 8h12' fill='none' stroke='%23FF7A00' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="manifest" id="manifest-link" href="">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  :root, [data-theme=dark] {
+  /* 1.1 Modos de Visualización estrictos */
+  :root, [data-theme="dark"] {
     color-scheme: dark;
-    --bg: #0E111A;
-    --card: #151926;
-    --card2: #1C2132;
-    --line: #1E2333;
-    --text: #F3F4F6;
-    --muted: #8E95A9;
-    --accent: #7C66DC;
-    --accent-glow: rgba(124, 102, 220, 0.35);
-    --orange: #FF6B00;
-    --onaccent: #FFFFFF;
-    --navbg: rgba(14, 17, 26, 0.95);
+    --bg: #000000;
+    --card: #0C0C0C;
+    --card2: #161616;
+    --line: #262626;
+    --text: #FFFFFF;
+    --muted: #8E8E93;
+    --accent: #FFFFFF;
+    --onaccent: #000000;
+    --orange: #FF7A00;
+    --navbg: rgba(0, 0, 0, 0.96);
     --green: #22c55e;
     --t-blue: #60a5fa;
     --t-amber: #fbbf24;
     --t-green: #34d399;
-    --danger: #f87171;
+    --danger: #ff453a;
   }
+
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg: #FFFFFF;
+    --card: #FFFFFF;
+    --card2: #F4F4F5;
+    --line: #E4E4E7;
+    --text: #111111;
+    --muted: #71717A;
+    --accent: #FF7A00;
+    --onaccent: #FFFFFF;
+    --orange: #FF7A00;
+    --navbg: rgba(255, 255, 255, 0.96);
+    --green: #16a34a;
+    --t-blue: #2563eb;
+    --t-amber: #d97706;
+    --t-green: #15803d;
+    --danger: #dc2626;
+  }
+
   html, body {
     height: 100%;
     overflow: hidden;
@@ -42,6 +62,7 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
+
   #shell {
     height: 100dvh;
     max-width: 540px;
@@ -51,6 +72,7 @@
     padding-top: env(safe-area-inset-top);
     overflow: hidden;
   }
+
   #top {
     flex: none;
     height: 52px;
@@ -60,21 +82,22 @@
     padding: 0 16px;
     border-bottom: 1px solid var(--line);
   }
+
   #logo svg {
     width: 30px;
     height: 30px;
     display: block;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    border: 1px solid var(--line);
   }
+
   #top .ttl {
     font-weight: 800;
     font-size: 18px;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, #FFF, #A5B4FC);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--text);
   }
+
   #app {
     flex: 1;
     min-height: 0;
@@ -83,6 +106,7 @@
     padding: 12px 16px;
     overflow: hidden;
   }
+
   .scroll {
     flex: 1;
     min-height: 0;
@@ -92,7 +116,6 @@
   }
   ::-webkit-scrollbar { display: none; }
 
-  /* Tarjetas e interfaz FOCO */
   .card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -104,7 +127,7 @@
     border-radius: 14px;
   }
   .muted { color: var(--muted); }
-  
+
   /* Botones */
   .btn {
     display: inline-flex;
@@ -127,16 +150,15 @@
     background: var(--accent);
     border-color: var(--accent);
     color: var(--onaccent);
-    box-shadow: 0 4px 14px var(--accent-glow);
   }
   .btn-orange {
     background: var(--orange);
     border-color: var(--orange);
-    color: #fff;
+    color: #FFFFFF;
   }
   .btn-danger {
-    background: rgba(248, 113, 113, 0.12);
-    border-color: rgba(248, 113, 113, 0.35);
+    background: rgba(255, 69, 58, 0.12);
+    border-color: rgba(255, 69, 58, 0.4);
     color: var(--danger);
   }
   .btn-ghost {
@@ -158,7 +180,7 @@
   }
   .iconbtn:active { background: var(--card2); color: var(--text); }
 
-  /* Entradas de formulario */
+  /* Inputs */
   input[type=text], input[type=password], input[type=date], input[type=time], input[type=number], textarea, select {
     width: 100%;
     background: var(--card2);
@@ -179,7 +201,31 @@
   }
   textarea { resize: none; min-height: 80px; }
 
-  /* Tira semanal estilo FOCO (Píldoras verticales) */
+  /* Selector de modo de calendario */
+  .seg {
+    display: flex;
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg button {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .seg button.on {
+    background: var(--accent);
+    color: var(--onaccent);
+  }
+
+  /* Tira semanal y Calendario mensual */
   .week-strip {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -190,13 +236,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px 4px;
-    border-radius: 16px;
+    padding: 7px 4px;
+    border-radius: 14px;
     background: var(--card);
     border: 1px solid var(--line);
     cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
+    transition: all 0.15s ease;
     user-select: none;
   }
   .day-pill .d-name {
@@ -204,30 +249,28 @@
     font-weight: 700;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
   .day-pill .d-num {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 700;
     color: var(--text);
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 99px;
   }
   .day-pill.today {
-    border-color: rgba(124, 102, 220, 0.5);
+    border-color: var(--accent);
   }
   .day-pill.sel {
     background: var(--accent);
     border-color: var(--accent);
-    box-shadow: 0 4px 16px var(--accent-glow);
-    transform: translateY(-1px);
   }
   .day-pill.sel .d-name, .day-pill.sel .d-num {
-    color: #FFFFFF;
+    color: var(--onaccent);
   }
   .day-pill .dot-ind {
     width: 5px;
@@ -237,19 +280,58 @@
     margin-top: 3px;
   }
   .day-pill.sel .dot-ind {
-    background: #FFFFFF;
+    background: var(--onaccent);
   }
 
-  /* Bloques del día (Mañana, Tarde, Noche, Anytime) */
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .m-cell {
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    position: relative;
+    user-select: none;
+  }
+  .m-cell.today {
+    border-color: var(--accent);
+  }
+  .m-cell.sel {
+    background: var(--accent);
+    color: var(--onaccent);
+    font-weight: 800;
+  }
+  .m-cell .m-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--orange);
+    position: absolute;
+    bottom: 3px;
+  }
+  .m-cell.sel .m-dot {
+    background: var(--onaccent);
+  }
+
+  /* Bloques del día */
   .block-hdr {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 8px 12px;
     margin-top: 6px;
     margin-bottom: 6px;
     border-radius: 12px;
-    background: rgba(28, 33, 50, 0.55);
+    background: var(--card2);
     border: 1px solid var(--line);
     cursor: pointer;
     user-select: none;
@@ -259,12 +341,12 @@
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 99px;
-    background: var(--card2);
+    background: var(--card);
     color: var(--muted);
     border: 1px solid var(--line);
   }
 
-  /* Tarjeta de tarea estilo FOCO */
+  /* Tarjeta de tarea / recordatorio */
   .task-card {
     display: flex;
     align-items: center;
@@ -276,7 +358,6 @@
     border-radius: 16px;
     transition: all 0.15s ease;
   }
-  .task-card:active { transform: scale(0.99); }
   .cat-ico {
     width: 40px;
     height: 40px;
@@ -304,17 +385,16 @@
   .check-circle.on {
     background: var(--accent);
     border-color: var(--accent);
-    box-shadow: 0 0 10px var(--accent-glow);
   }
-  .check-circle svg { opacity: 0; color: #fff; transform: scale(0.6); transition: 0.2s; }
+  .check-circle svg { opacity: 0; color: var(--onaccent); transform: scale(0.6); transition: 0.2s; }
   .check-circle.on svg { opacity: 1; transform: scale(1); }
   .done-text { text-decoration: line-through; color: var(--muted); }
 
-  /* Chips y selectores rápidos */
+  /* Chips e ítems seleccionables */
   .chip {
-    padding: 6px 12px;
+    padding: 7px 13px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
     border: 1px solid var(--line);
     color: var(--muted);
@@ -327,15 +407,16 @@
     user-select: none;
   }
   .chip.on {
-    background: rgba(124, 102, 220, 0.2);
-    color: #fff;
+    background: var(--accent);
+    color: var(--onaccent);
     border-color: var(--accent);
+    font-weight: 700;
   }
   .chip.c-blue.on { background: rgba(96, 165, 250, 0.18); color: var(--t-blue); border-color: rgba(96, 165, 250, 0.55); }
   .chip.c-amber.on { background: rgba(251, 191, 36, 0.18); color: var(--t-amber); border-color: rgba(251, 191, 36, 0.55); }
-  .chip.c-green.on { background: rgba(52, 211, 153, 0.18); color: var(--t-green); border-color: rgba(52, 211, 153, 0.55); }
+  .chip.c-green.on { background: rgba(52, 211, 153, 0.18); color: var(--t-green); border-color: rgba(52, 211, 36, 0.55); }
 
-  .bar { height: 6px; background: var(--card2); border-radius: 99px; overflow: hidden; }
+  .bar { height: 7px; background: var(--card2); border-radius: 99px; overflow: hidden; }
   .bar > div { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s; }
 
   /* Barra inferior de navegación (3 pestañas) */
@@ -367,21 +448,21 @@
   }
   nav#bottom svg { width: 22px; height: 22px; }
 
-  /* Barra rápida inferior (+ / input o barra naranja / mic) */
+  /* Controles inferiores rápidos */
   .qbar {
     flex: none;
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
+    justify-content: space-between;
     margin-top: 10px;
     padding-top: 4px;
   }
-  .qbar input { height: 48px; flex: 1; min-width: 0; }
   .sq {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    border-radius: 14px;
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    border-radius: 15px;
     flex: none;
     padding: 0;
     display: inline-flex;
@@ -393,21 +474,19 @@
     cursor: pointer;
     transition: transform 0.15s, background 0.15s;
     user-select: none;
-    box-shadow: 0 4px 12px var(--accent-glow);
   }
   .sq:active { transform: scale(0.93); }
   .sq.rec {
     background: #ef4444;
     border-color: #ef4444;
     color: #fff;
-    box-shadow: 0 0 18px rgba(239, 68, 68, 0.7);
     animation: pulseMic 1s infinite;
   }
   .obar {
     flex: 1;
     min-width: 0;
-    height: 48px;
-    border-radius: 14px;
+    height: 50px;
+    border-radius: 15px;
     background: var(--orange);
     color: #fff;
     font-weight: 700;
@@ -418,7 +497,6 @@
     gap: 8px;
     cursor: pointer;
     border: 0;
-    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.35);
     transition: transform 0.15s;
   }
   .obar:active { transform: scale(0.98); }
@@ -427,13 +505,13 @@
   .modal-bg {
     position: fixed;
     inset: 0;
-    background: rgba(5, 7, 12, 0.75);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
     z-index: 50;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    animation: fade 0.18s ease;
+    animation: fade 0.15s ease;
   }
   .modal-sheet {
     width: 100%;
@@ -444,7 +522,6 @@
     border-top: 1px solid var(--line);
     border-radius: 24px 24px 0 0;
     padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
-    animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .sheet-handle {
     width: 42px;
@@ -454,7 +531,6 @@
     margin: 0 auto 14px;
   }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @keyframes pulseMic { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: 0.75; } }
 
   /* Toast */
@@ -471,10 +547,10 @@
     font-weight: 600;
     font-size: 13.5px;
     z-index: 80;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.28s ease;
     max-width: 90vw;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
@@ -519,7 +595,7 @@
 'use strict';
 
 /* ============================ UTILIDADES Y CONSTANTES ============================ */
-const KEY = 'foco_pwa_v2';
+const KEY = 'foco_pwa_v3';
 const $ = (s, r = document) => r.querySelector(s);
 const pad = n => String(n).padStart(2, '0');
 const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -540,8 +616,10 @@ const DAYS_SHORT = [
   { l: 'S', name: 'Sáb', v: 6 },
   { l: 'D', name: 'Dom', v: 0 }
 ];
+
 const longDate = s => cap(parse(s).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }));
 const shortDate = s => cap(parse(s).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, ''));
+const monthYearLabel = s => cap(parse(s).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }));
 
 const CATEGORIES = [
   { id: 'Study', label: 'Estudio', icon: '📚' },
@@ -557,18 +635,25 @@ const TIME_BLOCKS = [
   { id: 'morning', label: 'Mañana', sub: 'Morning', icon: '🌅' },
   { id: 'afternoon', label: 'Tarde', sub: 'Afternoon', icon: '☀️' },
   { id: 'evening', label: 'Noche', sub: 'Evening', icon: '🌙' },
-  { id: 'anytime', label: 'En cualquier momento', sub: 'Anytime', icon: '✨' }
+  { id: 'anytime', label: 'Cualquier hora', sub: 'Anytime', icon: '✨' }
 ];
 
 const DURATIONS = [2, 5, 15, 30, 45, 60];
-const REP_LABEL = { none: 'No repetir', daily: 'Diario', weekly: 'Semanal' };
+const REP_OPTIONS = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+const REP_LABEL = {
+  none: 'No repetir',
+  daily: 'Diario',
+  weekly: 'Semanal',
+  monthly: 'Mensual',
+  yearly: 'Anual'
+};
 
 /* ============================ LOGO / ICONO (SVG) ============================ */
-const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#FFFFFF"/><circle cx="32" cy="35" r="18" fill="none" stroke="#FF6B00" stroke-width="5"/><path d="M32 24v11l7 5" fill="none" stroke="#FF6B00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 8h12" fill="none" stroke="#FF6B00" stroke-width="5" stroke-linecap="round"/></svg>`;
+const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#FFFFFF"/><circle cx="32" cy="35" r="18" fill="none" stroke="#FF7A00" stroke-width="5"/><path d="M32 24v11l7 5" fill="none" stroke="#FF7A00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 8h12" fill="none" stroke="#FF7A00" stroke-width="5" stroke-linecap="round"/></svg>`;
 const ICON_URI = 'data:image/svg+xml,' + encodeURIComponent(LOGO_SVG);
 $('#logo').innerHTML = LOGO_SVG;
 
-/* ============================ ICONOS MINIMALISTAS ============================ */
+/* ============================ ICONOS ============================ */
 const ic = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 9h18M9 14l2 2 4-4"/></svg>',
   study: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M9 8h7M9 12h5"/></svg>',
@@ -599,19 +684,19 @@ const TABS = [
 const defaults = () => ({
   events: [],
   subjects: [],
-  settings: { work: 25, rest: 5, geminiKey: '' },
+  settings: { work: 25, rest: 5, geminiKey: '', theme: 'dark' },
   pomo: { phase: 'work', remaining: 25 * 60, running: false, endAt: null, sessions: 0 },
   stats: { focusByDate: {}, activeDays: {} },
-  ui: { tab: 'home', sub: 'list', openSubj: [], collapsedBlocks: [] }
+  ui: { tab: 'home', sub: 'list', calMode: 'week', settingsSub: 'main', openSubj: [], collapsedBlocks: [] }
 });
 
-const clampMin = v => Math.min(90, Math.max(1, Math.round(Number(v)) || 25));
+const clampMin = v => Math.min(180, Math.max(1, Math.round(Number(v)) || 25));
 
 function inferTimeOfDay(time, fallback = 'anytime') {
   if (!time || !/^\d\d:\d\d$/.test(time)) return ['morning', 'afternoon', 'evening', 'anytime'].includes(fallback) ? fallback : 'anytime';
   const h = parseInt(time.split(':')[0], 10);
   if (h >= 5 && h < 12) return 'morning';
-  if (h >= 12 && h < 19) return 'afternoon';
+  if (h >= 12 && h < 20) return 'afternoon';
   return 'evening';
 }
 
@@ -623,6 +708,7 @@ function normalize(o) {
   s.settings.work = clampMin(s.settings.work);
   s.settings.rest = clampMin(s.settings.rest);
   s.settings.geminiKey = String(s.settings.geminiKey || '');
+  if (!['dark', 'light'].includes(s.settings.theme)) s.settings.theme = 'dark';
 
   s.pomo = Object.assign({}, d.pomo, o.pomo);
   if (!['work', 'rest'].includes(s.pomo.phase)) s.pomo.phase = 'work';
@@ -634,7 +720,9 @@ function normalize(o) {
   s.ui = Object.assign({}, d.ui, o.ui);
   if (!['home', 'study', 'settings'].includes(s.ui.tab)) s.ui.tab = 'home';
   if (!['list', 'pomo'].includes(s.ui.sub)) s.ui.sub = 'list';
-  if (!Array.isArray(s.ui.openSubj)) s.ui.openSubj = Array.isArray(o.ui?.open) ? o.ui.open : [];
+  if (!['week', 'month'].includes(s.ui.calMode)) s.ui.calMode = 'week';
+  if (!['main', 'focoStats'].includes(s.ui.settingsSub)) s.ui.settingsSub = 'main';
+  if (!Array.isArray(s.ui.openSubj)) s.ui.openSubj = [];
   if (!Array.isArray(s.ui.collapsedBlocks)) s.ui.collapsedBlocks = [];
 
   if (!Array.isArray(s.subjects)) s.subjects = [];
@@ -644,15 +732,15 @@ function normalize(o) {
     const time = /^\d\d:\d\d$/.test(e.time || '') ? e.time : '';
     return {
       id: e.id || uid(),
+      itemType: e.itemType === 'reminder' ? 'reminder' : 'task',
       text: String(e.text || e.title),
       date: e.date,
       time,
       timeOfDay: inferTimeOfDay(time, e.timeOfDay),
       dur: Number(e.dur || e.duration) || 15,
       category: getCat(e.category).id,
-      repeat: ['daily', 'weekly'].includes(e.repeat) ? e.repeat : 'none',
+      repeat: REP_OPTIONS.includes(e.repeat) ? e.repeat : 'none',
       notes: String(e.notes || ''),
-      subtasks: Array.isArray(e.subtasks) ? e.subtasks.map(st => ({ id: st.id || uid(), text: String(st.text || ''), done: !!st.done })) : [],
       skip: Array.isArray(e.skip) ? e.skip : [],
       doneOn: e.doneOn && typeof e.doneOn === 'object' ? e.doneOn : {}
     };
@@ -662,7 +750,7 @@ function normalize(o) {
 
 function load() {
   try {
-    const raw = localStorage.getItem(KEY) || localStorage.getItem('foco_pwa_v1');
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('foco_pwa_v2') || localStorage.getItem('foco_pwa_v1');
     return raw ? normalize(JSON.parse(raw)) : defaults();
   } catch (e) {
     return defaults();
@@ -671,15 +759,59 @@ function load() {
 
 let S = load();
 let sel = todayStr();
-let quickText = '';
-let aiProcessing = false;
 
 const save = () => {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { toast('Error al guardar en localStorage'); }
 };
 
-/* ============================ ESTADÍSTICAS Y RACHAS ============================ */
+function applyTheme() {
+  const th = S.settings.theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', th);
+  const meta = $('#theme-meta');
+  if (meta) meta.content = th === 'light' ? '#FFFFFF' : '#000000';
+}
+
+/* ============================ MODELO DE TAREAS Y RECORDATORIOS ============================ */
+const newEv = o => {
+  const time = o.time || '';
+  return Object.assign({
+    id: uid(),
+    itemType: 'task',
+    text: '',
+    date: sel,
+    time: '',
+    timeOfDay: inferTimeOfDay(time, o.timeOfDay || 'anytime'),
+    dur: 15,
+    category: 'Study',
+    repeat: 'none',
+    notes: '',
+    skip: [],
+    doneOn: {}
+  }, o, { timeOfDay: inferTimeOfDay(time, o.timeOfDay || 'anytime') });
+};
+
+function occurs(e, ds) {
+  if (ds < e.date || (e.skip || []).includes(ds)) return false;
+  if (e.repeat === 'daily') return true;
+  if (e.repeat === 'weekly') return parse(ds).getDay() === parse(e.date).getDay();
+  if (e.repeat === 'monthly') return parse(ds).getDate() === parse(e.date).getDate();
+  if (e.repeat === 'yearly') {
+    const a = parse(ds), b = parse(e.date);
+    return a.getDate() === b.getDate() && a.getMonth() === b.getMonth();
+  }
+  return ds === e.date;
+}
+
+const evOn = ds => S.events.filter(e => occurs(e, ds)).sort((a, b) => {
+  if (!!a.time !== !!b.time) return a.time ? -1 : 1;
+  if (a.time) return a.time.localeCompare(b.time) || a.text.localeCompare(b.text);
+  return a.text.localeCompare(b.text);
+});
+
+const isDone = (e, ds) => !!(e.doneOn && e.doneOn[ds]);
+
+/* ============================ ESTADÍSTICAS (STATS & FOCO STATS) ============================ */
 function markDayActive(ds = todayStr()) {
   S.stats.activeDays[ds] = true;
 }
@@ -709,6 +841,21 @@ function getStreak() {
   return count;
 }
 
+function getMonthlyTaskCompletion() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const dim = new Date(y, m + 1, 0).getDate();
+  let total = 0, completed = 0;
+  for (let d = 1; d <= dim; d++) {
+    const ds = `${y}-${pad(m + 1)}-${pad(d)}`;
+    const list = evOn(ds);
+    total += list.length;
+    completed += list.filter(e => isDone(e, ds)).length;
+  }
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return { total, completed, pct, monthName: cap(now.toLocaleDateString('es-ES', { month: 'long' })) };
+}
+
 function getFocusStats() {
   const td = todayStr();
   const todayMin = S.stats.focusByDate[td] || 0;
@@ -718,42 +865,15 @@ function getFocusStats() {
     const ds = addDays(mon, i);
     weekMin += (S.stats.focusByDate[ds] || 0);
   }
-  return { todayMin, weekMin, streak: getStreak() };
+  const totalMin = Object.values(S.stats.focusByDate || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
+  return {
+    todayMin,
+    weekMin,
+    totalMin,
+    sessions: S.pomo.sessions || 0,
+    streak: getStreak()
+  };
 }
-
-/* ============================ MODELO DE TAREAS ============================ */
-const newEv = o => {
-  const time = o.time || '';
-  return Object.assign({
-    id: uid(),
-    text: '',
-    date: sel,
-    time: '',
-    timeOfDay: inferTimeOfDay(time, o.timeOfDay || 'anytime'),
-    dur: 15,
-    category: 'Study',
-    repeat: 'none',
-    notes: '',
-    subtasks: [],
-    skip: [],
-    doneOn: {}
-  }, o, { timeOfDay: inferTimeOfDay(time, o.timeOfDay || 'anytime') });
-};
-
-function occurs(e, ds) {
-  if (ds < e.date || (e.skip || []).includes(ds)) return false;
-  if (e.repeat === 'daily') return true;
-  if (e.repeat === 'weekly') return parse(ds).getDay() === parse(e.date).getDay();
-  return ds === e.date;
-}
-
-const evOn = ds => S.events.filter(e => occurs(e, ds)).sort((a, b) => {
-  if (!!a.time !== !!b.time) return a.time ? -1 : 1;
-  if (a.time) return a.time.localeCompare(b.time) || a.text.localeCompare(b.text);
-  return a.text.localeCompare(b.text);
-});
-
-const isDone = (e, ds) => !!(e.doneOn && e.doneOn[ds]);
 
 /* ============================ TOAST Y DIÁLOGOS AUXILIARES ============================ */
 let toastT;
@@ -766,7 +886,6 @@ function toast(msg) {
 }
 
 function closeModal() {
-  abortVoice('m-');
   $('#modal').innerHTML = '';
 }
 
@@ -801,7 +920,7 @@ function confirmBox(title, msg, cb, label = 'Confirmar') {
   window._okCb = cb;
 }
 
-/* ============================ VOZ Y GEMINI API ============================ */
+/* ============================ VOZ Y PARSER NLP ESTRICTO ============================ */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, listening = false, micKey = null;
 
@@ -813,14 +932,7 @@ function stopVoice() {
   if (rec && listening) { try { rec.stop(); } catch (e) {} }
 }
 
-function abortVoice(prefix) {
-  if (rec && listening && micKey && micKey.startsWith(prefix)) {
-    rec._cancel = true;
-    try { rec.abort(); } catch (e) {}
-  }
-}
-
-function startVoice(key, cb, live) {
+function startVoice(key, cb) {
   if (!SR) {
     toast('Tu navegador no soporta reconocimiento de voz (prueba Chrome o Safari).');
     return;
@@ -832,14 +944,13 @@ function startVoice(key, cb, live) {
   const r = new SR();
   rec = r;
   r.lang = 'es-ES';
-  r.interimResults = true;
+  r.interimResults = false;
   r.continuous = false;
   r.maxAlternatives = 1;
   let txt = '';
   r.onstart = () => { listening = true; micKey = key; applyMic(); toast('🎙️ Escuchando... habla ahora'); };
   r.onresult = ev => {
     txt = Array.from(ev.results).map(x => x[0].transcript).join(' ').trim();
-    if (live) live(txt);
   };
   r.onerror = ev => {
     if (ev.error === 'aborted') return;
@@ -854,7 +965,7 @@ function startVoice(key, cb, live) {
   try { r.start(); } catch (e) { toast('No se pudo activar el micrófono'); }
 }
 
-/* Fallback Local con Expresiones Regulares en Español */
+/* 3. Separación estricta de título y fecha/hora (Ej: "comida día 31 a las 1" -> título: "Comida", día 31, hora 13:00) */
 const NW = { una: 1, un: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12 };
 const numv = x => { x = String(x).toLowerCase(); return /^\d+$/.test(x) ? parseInt(x, 10) : NW[x]; };
 const WD = { domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6 };
@@ -865,15 +976,16 @@ function parseVoiceLocal(text) {
   let s = ' ' + String(text).replace(/\s+/g, ' ').trim() + ' ';
   let date = null, time = null, timeOfDay = null, duration = null, category = 'Personal';
   const today = todayStr();
+  const baseDate = parse(sel || today);
   const cut = m => { s = s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length); };
 
-  // Duración ("durante 30 minutos", "por 15 min")
+  // 1) Duración ("durante 30 minutos", "por 15 min")
   let mDur = s.match(/\s(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min|m)\b/i);
   if (mDur) { duration = parseInt(mDur[1], 10); cut(mDur); }
 
-  // Hora
+  // 2) Hora ("a las 1", "a la 1", "a las 13:00", "a las 3 de la tarde")
   const NUM = '(\\d{1,2}|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)';
-  const reT = new RegExp('\\s(?:a|sobre|hacia|para|desde)\\s+la[s]?\\s+' + NUM +
+  const reT = new RegExp('\\s(?:a|sobre|hacia|para|desde)?\\s*la[s]?\\s+' + NUM +
     '(?:\\s*[:.h]\\s*(\\d{2}))?(?:\\s+y\\s+(media|cuarto|\\d{1,2}))?(?:\\s+menos\\s+(cuarto|\\d{1,2}))?' +
     '(?:\\s*(?:horas|hs|h))?(?:\\s+(?:de|por|en)\\s+la\\s+(ma[ñn]ana|tarde|noche|madrugada))?' + LA, 'i');
   let m = s.match(reT);
@@ -886,12 +998,12 @@ function parseVoiceLocal(text) {
     if (per === 'tarde') { if (h < 12) h += 12; }
     else if (per === 'noche') { if (raw === 12) h = 0; else if (h < 12) h += 12; }
     else if (per) { if (h === 12) h = 0; }
-    else if (h >= 1 && h <= 7) h += 12;
+    else if (h >= 1 && h <= 7) h += 12; // "a las 1" o "a la 1" -> 13:00 por defecto
     if (m[4]) { h -= 1; mi = m[4] === 'cuarto' ? 45 : 60 - parseInt(m[4], 10); }
     if (h >= 0 && h <= 23 && mi >= 0 && mi <= 59) { time = pad(h) + ':' + pad(mi); cut(m); }
   }
 
-  // Momento del día explícito
+  // 3) Momento del día explícito
   let mTod = s.match(new RegExp('\\s(?:por|en|de)\\s+la\\s+(ma[ñn]ana|tarde|noche)' + LA, 'i'));
   if (mTod) {
     const p = mTod[1].toLowerCase();
@@ -899,7 +1011,34 @@ function parseVoiceLocal(text) {
     cut(mTod);
   }
 
-  // Día
+  // 4) Fecha con mes ("el 31 de octubre", "día 15 de mayo")
+  m = s.match(new RegExp('\\s(?:para\\s+)?(?:el\\s+)?(?:d[ií]a\\s+)?(\\d{1,2})\\s+de\\s+(' + MONTHS.join('|') + ')(?:\\s+de\\s+(\\d{4}))?' + LA, 'i'));
+  if (m) {
+    const dd = parseInt(m[1], 10), mm = MONTHS.indexOf(m[2].toLowerCase());
+    let yy = m[3] ? parseInt(m[3], 10) : baseDate.getFullYear();
+    let d = new Date(yy, mm, dd);
+    if (d.getMonth() === mm && dd >= 1) { date = fmt(d); cut(m); }
+  }
+
+  // 5) Día numérico del mes ("día 31", "el día 31", "para el día 12", "el 31")
+  if (!date) {
+    m = s.match(new RegExp('\\s(?:para\\s+)?(?:el\\s+)?d[ií]a\\s+(\\d{1,2})' + LA, 'i')) ||
+        s.match(new RegExp('\\s(?:para\\s+el|el)\\s+(\\d{1,2})' + LA, 'i'));
+    if (m) {
+      const dd = parseInt(m[1], 10);
+      if (dd >= 1 && dd <= 31) {
+        let yy = baseDate.getFullYear(), mm = baseDate.getMonth();
+        let candidate = new Date(yy, mm, dd);
+        if (candidate.getMonth() !== mm) {
+          candidate = new Date(yy, mm + 1, dd);
+        }
+        date = fmt(candidate);
+        cut(m);
+      }
+    }
+  }
+
+  // 6) Expresiones relativas (pasado mañana, mañana, hoy, lunes...)
   if (!date) {
     m = s.match(new RegExp('\\s(?:para\\s+)?pasado\\s+ma[ñn]ana' + LA, 'i'));
     if (m) { date = addDays(today, 2); cut(m); }
@@ -921,11 +1060,15 @@ function parseVoiceLocal(text) {
     }
   }
 
+  // 7) Limpieza estricta del título (remover conectores o residuos de fecha/hora)
   s = s.replace(/\s+/g, ' ').trim();
-  s = s.replace(/^(?:por favor\s+)?(?:a[ñn]ad(?:e|ir|eme)|agrega(?:r|me)?|crea(?:r)?|apunta(?:r)?|anota(?:r)?|pon(?:me|er)?|programa(?:r)?|recu[eé]rdame|recordar(?:me)?|nueva\s+tarea|tarea)(?=\s|$)\s*/i, '');
-  s = s.replace(/(?:\s+(?:el|a|de|para|en|y|por))+$/i, '').replace(/[\s,;:.]+$/, '').trim();
+  s = s.replace(/^(?:por favor\s+)?(?:a[ñn]ad(?:e|ir|eme)|agrega(?:r|me)?|crea(?:r)?|apunta(?:r)?|anota(?:r)?|pon(?:me|er)?|programa(?:r)?|recu[eé]rdame|recordar(?:me)?|nueva\s+tarea|tarea|recordatorio)(?=\s|$)\s*/i, '');
+  s = s.replace(/\b(?:el\s+d[ií]a|d[ií]a)\s+\d{1,2}\b/gi, '');
+  s = s.replace(/\b(?:a\s+la[s]?)\s+\d{1,2}(?::\d{2})?\b/gi, '');
+  s = s.replace(/(?:\s+(?:el|la|los|las|a|al|de|del|para|en|y|por|d[ií]a))+$/i, '');
+  s = s.replace(/^[\s,;:.]+|[\s,;:.]+$/g, '').trim();
 
-  // Inferir categoría básica
+  // Inferir categoría
   const low = s.toLowerCase();
   if (/estudiar|examen|repasar|apuntes|clase|tema|lectura/.test(low)) category = 'Study';
   else if (/reuni[oó]n|trabajo|informe|cliente|correo|proyecto/.test(low)) category = 'Work';
@@ -934,33 +1077,31 @@ function parseVoiceLocal(text) {
   else if (/dise[ñn]ar|escribir|dibujar|m[uú]sica|idea/.test(low)) category = 'Creativity';
 
   return {
-    title: s ? cap(s) : cap(text.trim()),
+    title: s ? cap(s) : 'Tarea',
     date: date || sel,
-    time: time || null,
+    time: time || '',
     timeOfDay: inferTimeOfDay(time, timeOfDay || 'anytime'),
     duration: duration || 15,
     category
   };
 }
 
-/* Procesamiento con Google Gemini API + Fallback */
 async function parseTaskWithGemini(phrase) {
+  const localFallback = parseVoiceLocal(phrase);
   const apiKey = (S.settings.geminiKey || '').trim();
-  if (!apiKey) return parseVoiceLocal(phrase);
+  if (!apiKey) return localFallback;
 
   const systemPrompt = `Extrae de la frase del usuario los siguientes campos en formato JSON estricto:
 {
-  "title": "nombre de la tarea limpio",
+  "title": "ÚNICAMENTE el nombre limpio de la acción o evento, SIN incluir referencias al día, fecha ni hora (ejemplo: si dice 'comida día 31 a las 1', el title debe ser exclusivamente 'Comida')",
   "date": "YYYY-MM-DD",
-  "time": "HH:MM o null si no se menciona",
+  "time": "HH:MM en formato 24h (ejemplo: 'a las 1' de comida es '13:00') o null si no se menciona",
   "timeOfDay": "morning|afternoon|evening|anytime",
   "duration": número_en_minutos_o_null,
-  "category": "categoría sugerida (Study, Work, Health, Fitness, Creativity, Personal)"
-}. Considera que hoy es ${todayStr()} y el día actualmente seleccionado en la agenda es ${sel}. Devuelve únicamente el objeto JSON válido.`;
+  "category": "Study|Work|Health|Fitness|Creativity|Personal"
+}. Considera que hoy es ${todayStr()} y el mes/fecha visualizado en el calendario es ${sel}. Devuelve solo JSON.`;
 
   try {
-    aiProcessing = true;
-    render();
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
     const res = await fetch(url, {
       method: 'POST',
@@ -968,66 +1109,87 @@ async function parseTaskWithGemini(phrase) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: phrase }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.0 }
       })
     });
-    if (!res.ok) throw new Error('API Error ' + res.status);
+    if (!res.ok) throw new Error('API Error');
     const data = await res.json();
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const cleanJson = rawText.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    aiProcessing = false;
+    const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+    // Pasamos el título devuelto por Gemini por una limpieza adicional por seguridad
+    const cleanTitle = parseVoiceLocal(parsed.title || phrase).title;
     return {
-      title: parsed.title ? cap(String(parsed.title).trim()) : cap(phrase.trim()),
-      date: /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : sel,
-      time: /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : '',
-      timeOfDay: inferTimeOfDay(parsed.time, parsed.timeOfDay),
-      duration: Number(parsed.duration) || 15,
-      category: getCat(parsed.category).id
+      title: cleanTitle || localFallback.title,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : localFallback.date,
+      time: /^\d{2}:\d{2}$/.test(parsed.time) ? parsed.time : localFallback.time,
+      timeOfDay: inferTimeOfDay(parsed.time || localFallback.time, parsed.timeOfDay || localFallback.timeOfDay),
+      duration: Number(parsed.duration) || localFallback.duration,
+      category: getCat(parsed.category || localFallback.category).id
     };
   } catch (err) {
-    aiProcessing = false;
-    toast('Usando intérprete local (revisa tu API Key o conexión)');
-    return parseVoiceLocal(phrase);
+    return localFallback;
   }
 }
 
 async function handleVoiceTaskCreation(phrase) {
-  const quickIn = $('#quickIn');
-  if (quickIn) quickIn.value = '✨ Procesando con IA...';
+  toast('✨ Procesando comando de voz...');
   const p = await parseTaskWithGemini(phrase);
   const ev = newEv({
-    text: p.title || cap(phrase),
+    itemType: 'task',
+    text: p.title,
     date: p.date || sel,
     time: p.time || '',
     timeOfDay: p.timeOfDay || 'anytime',
     dur: p.duration || 15,
-    category: p.category || 'Study'
+    category: p.category || 'Personal'
   });
   S.events.push(ev);
   sel = ev.date;
-  quickText = '';
   save();
   render();
-  const blk = TIME_BLOCKS.find(b => b.id === ev.timeOfDay)?.label || '';
-  toast(`✓ "${ev.text}" · ${shortDate(ev.date)} (${blk})`);
+  toast(`✓ "${ev.text}" · ${shortDate(ev.date)}${ev.time ? ' a las ' + ev.time : ''}`);
 }
 
-/* ============================ FORMULARIO MODAL (BOTTOM SHEET) ============================ */
-let D = null; // Borrador del modal
+/* ============================ 4. FLUJO DE CREACIÓN [+] (TAREA / RECORDATORIO) ============================ */
+let D = null;
 
-function openAddModal(date, initialText = '') {
+/* 4.1 Paso 1: Selección obligatoria entre Tarea o Recordatorio */
+function openTypeChoiceModal() {
+  $('#modal').innerHTML = `
+  <div class="modal-bg" data-a="mbg">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="font-extrabold text-lg text-center mb-1">Crear nuevo elemento</div>
+      <div class="muted text-xs text-center mb-4">Selecciona qué deseas añadir a tu agenda</div>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button type="button" class="card2 p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-[var(--accent)] transition" data-a="chooseType" data-v="task">
+          <span class="text-3xl">✅</span>
+          <span class="font-bold text-base">Tarea</span>
+          <span class="muted text-[11px] text-center">Con duración, bloque y categoría</span>
+        </button>
+        <button type="button" class="card2 p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-[var(--accent)] transition" data-a="chooseType" data-v="reminder">
+          <span class="text-3xl">🔔</span>
+          <span class="font-bold text-base">Recordatorio</span>
+          <span class="muted text-[11px] text-center">Aviso puntual o periódico</span>
+        </button>
+      </div>
+      <button type="button" class="btn w-full" data-a="mclose">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function openCreateForm(itemType) {
   D = {
     id: null,
-    text: initialText,
-    date: date || sel,
+    itemType: itemType === 'reminder' ? 'reminder' : 'task',
+    text: '',
+    date: sel,
     category: 'Study',
     timeOfDay: 'morning',
     time: '',
     dur: 15,
     repeat: 'none',
-    notes: '',
-    subtasks: []
+    notes: ''
   };
   renderTaskSheet();
 }
@@ -1037,35 +1199,38 @@ function openEditModal(id) {
   if (!e) return;
   D = {
     id: e.id,
+    itemType: e.itemType === 'reminder' ? 'reminder' : 'task',
     text: e.text,
     date: e.date,
     category: getCat(e.category).id,
-    timeOfDay: e.timeOfDay || inferTimeOfDay(e.time, 'anytime'),
+    timeOfDay: e.timeOfDay || inferTimeOfDay(e.time, 'morning'),
     time: e.time || '',
     dur: e.dur || 15,
-    repeat: e.repeat || 'none',
-    notes: e.notes || '',
-    subtasks: JSON.parse(JSON.stringify(e.subtasks || []))
+    repeat: REP_OPTIONS.includes(e.repeat) ? e.repeat : 'none',
+    notes: e.notes || ''
   };
   renderTaskSheet();
 }
 
+/* Sincronización sin sobrescribir las selecciones de los botones */
 function syncSheetDraft() {
   if (!D) return;
-  const t = $('#fText'), dt = tm = $('#fTime'), dDate = $('#fDate'), nt = $('#fNotes'), cd = $('#fCustomDur');
+  const t = $('#fText');
+  const dDate = $('#fDate');
+  const tm = $('#fTime');
+  const nt = $('#fNotes');
   if (t) D.text = t.value;
-  if (dDate) D.date = dDate.value || D.date;
-  if (tm) {
-    D.time = tm.value;
-    if (D.time) D.timeOfDay = inferTimeOfDay(D.time, D.timeOfDay);
-  }
+  if (dDate && dDate.value) D.date = dDate.value;
+  if (tm) D.time = tm.value;
   if (nt) D.notes = nt.value;
-  if (cd && cd.value) D.dur = clampMin(cd.value);
 }
 
+/* 4.2 Formulario sin micrófono, sin subtareas, con selectores desbloqueados y Mensual/Anual */
 function renderTaskSheet() {
   if (!D) return;
   const isEdit = !!D.id;
+  const isRem = D.itemType === 'reminder';
+
   const catsHTML = CATEGORIES.map(c => `
     <button type="button" class="chip ${D.category === c.id ? 'on' : ''}" data-a="setCat" data-v="${c.id}">
       <span>${c.icon}</span><span>${c.label}</span>
@@ -1081,40 +1246,43 @@ function renderTaskSheet() {
       ${m} min
     </button>`).join('');
 
-  const repsHTML = ['none', 'daily', 'weekly'].map(r => `
+  const repsHTML = REP_OPTIONS.map(r => `
     <button type="button" class="chip ${D.repeat === r ? 'on' : ''}" data-a="setRep" data-v="${r}">
       ${REP_LABEL[r]}
     </button>`).join('');
-
-  const subsHTML = D.subtasks.map((st, idx) => `
-    <div class="flex items-center gap-2 mb-1.5 bg-[#151926] px-3 py-2 rounded-xl border border-[#1E2333]">
-      <div class="check-circle ${st.done ? 'on' : ''}" style="width:20px;height:20px" data-a="toggleDraftSub" data-v="${idx}">${ic.chk}</div>
-      <span class="flex-1 text-sm ${st.done ? 'done-text' : ''}">${esc(st.text)}</span>
-      <button type="button" class="iconbtn" style="width:26px;height:26px" data-a="delDraftSub" data-v="${idx}">${ic.trash}</button>
-    </div>`).join('');
 
   $('#modal').innerHTML = `
   <div class="modal-bg" data-a="mbg">
     <form class="modal-sheet" data-form="saveTask">
       <div class="sheet-handle"></div>
       <div class="flex items-center justify-between mb-3">
-        <div class="font-bold text-lg">${isEdit ? 'Editar tarea' : 'Nueva tarea'}</div>
+        <div class="flex items-center gap-2">
+          <span class="text-lg">${isRem ? '🔔' : '✅'}</span>
+          <span class="font-bold text-lg">${isEdit ? (isRem ? 'Editar recordatorio' : 'Editar tarea') : (isRem ? 'Nuevo recordatorio' : 'Nueva tarea')}</span>
+        </div>
         ${isEdit ? `<button type="button" class="btn btn-danger" style="padding:7px 12px" data-a="delTask">${ic.trash} Eliminar</button>` : ''}
       </div>
 
-      <!-- Título + Mic -->
-      <div class="flex gap-2 items-center mb-4">
-        <input type="text" id="fText" value="${esc(D.text)}" placeholder="Título de la tarea..." maxlength="120" autocomplete="off">
-        <button type="button" class="sq" data-a="micSheet" data-mic="m-sheet" title="Dictar con IA">${ic.mic}</button>
+      <!-- Tipo de elemento cambiable -->
+      <div class="seg mb-4">
+        <button type="button" class="${!isRem ? 'on' : ''}" data-a="switchFormType" data-v="task">Tarea</button>
+        <button type="button" class="${isRem ? 'on' : ''}" data-a="switchFormType" data-v="reminder">Recordatorio</button>
       </div>
 
-      <!-- Categoría -->
+      <!-- Campo de título (únicamente entrada manual de texto, sin micrófono) -->
+      <div class="label mb-1.5">Título</div>
+      <div class="mb-4">
+        <input type="text" id="fText" value="${esc(D.text)}" placeholder="Escribe el título manualmente..." maxlength="120" autocomplete="off">
+      </div>
+
+      <!-- Categorías -->
       <div class="label mb-1.5">Categoría</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${catsHTML}</div>
 
-      <!-- Momento del día y Fecha/Hora -->
+      <!-- Momentos del día -->
       <div class="label mb-1.5">Momento del día</div>
       <div class="flex flex-wrap gap-1.5 mb-3">${blocksHTML}</div>
+
       <div class="grid grid-cols-2 gap-2 mb-4">
         <div>
           <div class="label mb-1">Fecha</div>
@@ -1123,7 +1291,7 @@ function renderTaskSheet() {
         <div>
           <div class="flex items-center justify-between mb-1">
             <span class="label">Hora (opcional)</span>
-            <span class="text-xs font-semibold cursor-pointer" style="color:var(--accent)" data-a="clearSheetTime">Limpiar</span>
+            <span class="text-xs font-semibold cursor-pointer" style="color:var(--orange)" data-a="clearSheetTime">Quitar</span>
           </div>
           <input type="time" id="fTime" value="${esc(D.time)}">
         </div>
@@ -1133,35 +1301,27 @@ function renderTaskSheet() {
       <div class="label mb-1.5">Duración estimada</div>
       <div class="flex flex-wrap items-center gap-1.5 mb-4">
         ${dursHTML}
-        <input type="number" id="fCustomDur" min="1" max="300" value="${DURATIONS.includes(Number(D.dur)) ? '' : D.dur}" placeholder="Otra (min)" style="width:105px;min-height:34px;padding:5px 10px;font-size:12px">
+        <input type="number" id="fCustomDur" min="1" max="300" value="${DURATIONS.includes(Number(D.dur)) ? '' : D.dur}" placeholder="Otra (min)" style="width:105px;min-height:36px;padding:5px 10px;font-size:12px">
       </div>
 
-      <!-- Repetición -->
-      <div class="label mb-1.5">Repetir</div>
+      <!-- Frecuencia de repetición (incluye Mensual y Anual) -->
+      <div class="label mb-1.5">Frecuencia de repetición</div>
       <div class="flex flex-wrap gap-1.5 mb-4">${repsHTML}</div>
 
-      <!-- Subtareas -->
-      <div class="label mb-1.5">Subtareas</div>
-      <div class="mb-2">${subsHTML}</div>
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="newSubIn" placeholder="Añadir subtarea..." style="min-height:40px;padding:8px 12px;font-size:13.5px">
-        <button type="button" class="btn" data-a="addDraftSub">${ic.plus} Añadir</button>
-      </div>
-
-      <!-- Notas adicionales -->
+      <!-- Notas -->
       <div class="label mb-1.5">Notas</div>
-      <textarea id="fNotes" placeholder="Apuntes, enlaces o detalles de la tarea...">${esc(D.notes)}</textarea>
+      <textarea id="fNotes" placeholder="Notas o detalles adicionales...">${esc(D.notes)}</textarea>
 
       <div class="flex gap-2 mt-5">
         <button type="button" class="btn flex-1" data-a="mclose">Cancelar</button>
-        <button type="submit" class="btn btn-primary flex-1">Guardar tarea</button>
+        <button type="submit" class="btn btn-primary flex-1">Guardar</button>
       </div>
     </form>
   </div>`;
 }
 
-/* ============================ PESTAÑA 1: INICIO (AGENDA FOCO) ============================ */
-function renderWeekStrip() {
+/* ============================ 2. PANTALLA PRINCIPAL Y CALENDARIO (SEMANAL Y MENSUAL) ============================ */
+function renderWeekView() {
   const td = todayStr();
   const mon = mondayOf(sel);
   let pills = '';
@@ -1177,47 +1337,82 @@ function renderWeekStrip() {
         ${hasTasks ? '<span class="dot-ind"></span>' : '<span style="height:8px"></span>'}
       </div>`;
   }
+  return `<div class="week-strip">${pills}</div>`;
+}
+
+function renderMonthView() {
+  const td = todayStr();
+  const d = parse(sel);
+  const y = d.getFullYear(), m = d.getMonth();
+  const firstOffset = (new Date(y, m, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+  let cells = DAYS_SHORT.map(x => `<div class="text-center label py-1" style="font-size:10px">${x.l}</div>`).join('');
+  for (let i = 0; i < firstOffset; i++) cells += `<div></div>`;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const ds = `${y}-${pad(m + 1)}-${pad(day)}`;
+    const hasTasks = evOn(ds).some(e => !isDone(e, ds));
+    cells += `
+      <div class="m-cell ${ds === sel ? 'sel' : ''} ${ds === td ? 'today' : ''}" data-a="selDay" data-v="${ds}">
+        <span>${day}</span>
+        ${hasTasks ? '<span class="m-dot"></span>' : ''}
+      </div>`;
+  }
+  return `<div class="card p-2.5"><div class="month-grid">${cells}</div></div>`;
+}
+
+function renderCalendarSection() {
+  const td = todayStr();
+  const isMonth = S.ui.calMode === 'month';
+  const title = isMonth ? monthYearLabel(sel) : longDate(sel);
+
   return `
     <div class="flex-none mb-3">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-1">
-          <button class="iconbtn" data-a="prevWeek" title="Semana anterior">${ic.left}</button>
-          <span class="font-bold text-sm">${esc(longDate(sel))}</span>
-          <button class="iconbtn" data-a="nextWeek" title="Semana siguiente">${ic.right}</button>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-1 min-w-0">
+          <button class="iconbtn" data-a="prevCal" title="Anterior">${ic.left}</button>
+          <span class="font-bold text-sm truncate">${esc(title)}</span>
+          <button class="iconbtn" data-a="nextCal" title="Siguiente">${ic.right}</button>
         </div>
-        ${sel !== td ? `<button class="chip on" data-a="goToday">Ir a Hoy</button>` : `<span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#1C2132] text-[#A5B4FC]">Hoy</span>`}
+        <div class="flex items-center gap-1.5">
+          ${sel !== td ? `<button class="chip on" style="padding:4px 10px;font-size:11px" data-a="goToday">Hoy</button>` : ''}
+          <div class="seg">
+            <button type="button" class="${!isMonth ? 'on' : ''}" data-a="setCalMode" data-v="week">Semana</button>
+            <button type="button" class="${isMonth ? 'on' : ''}" data-a="setCalMode" data-v="month">Mes</button>
+          </div>
+        </div>
       </div>
-      <div class="week-strip">${pills}</div>
+      ${isMonth ? renderMonthView() : renderWeekView()}
     </div>`;
 }
 
 function renderTaskCard(e) {
   const done = isDone(e, sel);
   const cat = getCat(e.category);
-  const subTotal = (e.subtasks || []).length;
-  const subDone = (e.subtasks || []).filter(s => s.done).length;
+  const isRem = e.itemType === 'reminder';
   const meta = [];
-  if (e.dur) meta.push(`⏱ ${e.dur}m`);
+  if (isRem) meta.push('🔔 Recordatorio');
+  if (e.dur && !isRem) meta.push(`⏱ ${e.dur}m`);
   if (e.time) meta.push(`🕒 ${e.time}`);
   if (e.repeat && e.repeat !== 'none') meta.push(`↻ ${REP_LABEL[e.repeat]}`);
-  if (subTotal > 0) meta.push(`☑ ${subDone}/${subTotal}`);
 
   return `
     <div class="task-card">
-      <div class="cat-ico" data-a="editTask" data-v="${e.id}" style="cursor:pointer">${cat.icon}</div>
+      <div class="cat-ico" data-a="editTask" data-v="${e.id}" style="cursor:pointer">${isRem ? '🔔' : cat.icon}</div>
       <div class="flex-1 min-w-0 cursor-pointer" data-a="editTask" data-v="${e.id}">
         <div class="font-semibold text-[15px] leading-snug break-words ${done ? 'done-text' : ''}">${esc(e.text)}</div>
         <div class="flex flex-wrap items-center gap-2 mt-1 text-xs muted">
-          <span class="text-[#A5B4FC] font-medium">${esc(cat.label)}</span>
+          <span class="font-semibold" style="color:var(--orange)">${esc(cat.label)}</span>
           ${meta.map(m => `<span>· ${esc(m)}</span>`).join('')}
         </div>
       </div>
-      <div class="check-circle ${done ? 'on' : ''}" data-a="toggleTask" data-v="${e.id}" title="Marcar completada">
+      <div class="check-circle ${done ? 'on' : ''}" data-a="toggleTask" data-v="${e.id}" title="Completar">
         ${ic.chk}
       </div>
     </div>`;
 }
 
+/* 2. Limpieza de interfaz: sin barra central de texto en Inicio */
 function viewHome() {
   const list = evOn(sel);
   const collapsed = S.ui.collapsedBlocks || [];
@@ -1226,9 +1421,9 @@ function viewHome() {
   if (list.length === 0) {
     blocksContent = `
       <div class="card p-6 text-center my-auto">
-        <div class="text-3xl mb-2">✨</div>
-        <div class="font-bold text-base mb-1">Día despejado</div>
-        <div class="muted text-xs">Usa el botón + o dicta con el micrófono para planificar tu día.</div>
+        <div class="text-3xl mb-2">📅</div>
+        <div class="font-bold text-base mb-1">${esc(longDate(sel))}</div>
+        <div class="muted text-xs">No hay tareas ni recordatorios para este día.<br>Pulsa <b>+</b> o usa el micrófono.</div>
       </div>`;
   } else {
     TIME_BLOCKS.forEach(b => {
@@ -1242,7 +1437,6 @@ function viewHome() {
             <div class="flex items-center gap-2">
               <span>${b.icon}</span>
               <span class="font-bold text-xs tracking-wide uppercase">${b.label}</span>
-              <span class="muted text-[11px]">(${b.sub})</span>
             </div>
             <div class="flex items-center gap-2">
               <span class="block-badge">${pendCount} pend.</span>
@@ -1255,13 +1449,12 @@ function viewHome() {
   }
 
   return `
-    ${renderWeekStrip()}
+    ${renderCalendarSection()}
     <div class="scroll" id="taskList">${blocksContent}</div>
-    <form class="qbar" data-form="quickAdd">
-      <button type="button" class="sq" data-a="openAdd" aria-label="Añadir tarea manual">${ic.plusBig}</button>
-      <input type="text" id="quickIn" value="${esc(aiProcessing ? '✨ Procesando con Gemini...' : quickText)}" placeholder="Añadir o dictar tarea inteligente..." autocomplete="off" ${aiProcessing ? 'disabled' : ''}>
-      <button type="button" class="sq" data-a="micHome" data-mic="home" aria-label="Dictar tarea con IA">${ic.mic}</button>
-    </form>`;
+    <div class="qbar">
+      <button type="button" class="sq" data-a="openAdd" aria-label="Crear tarea o recordatorio">${ic.plusBig}</button>
+      <button type="button" class="sq" data-a="micHome" data-mic="home" aria-label="Dictar por voz">${ic.mic}</button>
+    </div>`;
 }
 
 /* ============================ PESTAÑA 2: ESTUDIO Y POMODORO ============================ */
@@ -1276,7 +1469,7 @@ function viewStudy() {
     const p = subjProgress(s);
     const open = S.ui.openSubj.includes(s.id);
     const topicsHTML = open ? `
-      <div class="mt-3 pt-2 border-t border-[#1E2333]">
+      <div class="mt-3 pt-2 border-t border-[var(--line)]">
         ${s.topics.length ? s.topics.map(t => `
           <div class="card2 p-3 mb-2">
             <div class="flex items-center gap-1 mb-2">
@@ -1304,7 +1497,7 @@ function viewStudy() {
             <div class="font-bold text-[15.5px] break-words">${esc(s.name)}</div>
             <div class="muted text-xs mt-0.5">${s.topics.filter(t => t.studied).length} de ${s.topics.length} temas estudiados</div>
           </div>
-          <div class="font-bold text-sm text-[#A5B4FC] mr-1">${p}%</div>
+          <div class="font-bold text-sm mr-1">${p}%</div>
           <span class="muted" style="transform:rotate(${open ? 180 : 0}deg);display:flex">${ic.chev}</span>
         </div>
         <div class="bar mt-2.5"><div style="width:${p}%"></div></div>
@@ -1543,7 +1736,7 @@ function finishPhase() {
   exitFullscreen();
   save();
   beep();
-  toast(wasWork ? '🎉 ¡Sesión completada! Minutos sumados a tus estadísticas.' : '⚡ Descanso finalizado. ¡Listo para volver al foco!');
+  toast(wasWork ? '🎉 ¡Sesión completada! Minutos sumados a Foco stats.' : '⚡ Descanso finalizado.');
   render();
 }
 
@@ -1558,31 +1751,86 @@ function tick() {
   document.title = P.running ? `${mmss(Math.max(0, P.remaining))} · FOCO` : 'Foco · Hábitos y productividad';
 }
 
-/* ============================ PESTAÑA 3: AJUSTES Y ESTADÍSTICAS ============================ */
-function viewSettings() {
+/* ============================ 1. PESTAÑA AJUSTES, THEMING Y SECCIÓN "STATS" ============================ */
+function viewFocoStatsSub() {
   const st = getFocusStats();
+  const hours = (st.totalMin / 60).toFixed(1);
+  return `
+    <div class="flex items-center justify-between mb-3 flex-none">
+      <button class="btn" style="padding:8px 12px" data-a="closeFocoStats">${ic.left} Volver a Ajustes</button>
+      <span class="label">Foco stats</span>
+    </div>
+    <div class="scroll">
+      <div class="card p-5 mb-3 text-center">
+        <div class="label mb-1">Tiempo Total Enfocado</div>
+        <div class="text-4xl font-extrabold my-1" style="color:var(--orange)">${st.totalMin} min</div>
+        <div class="muted text-xs">Equivalente a ${hours} horas acumuladas</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 mb-3">
+        <div class="card p-4 text-center">
+          <div class="text-2xl font-extrabold">${st.sessions}</div>
+          <div class="muted text-xs font-semibold mt-1">Sesiones Acumuladas</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="text-2xl font-extrabold" style="color:var(--orange)">🔥 ${st.streak}</div>
+          <div class="muted text-xs font-semibold mt-1">Racha Actual (días)</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="text-2xl font-extrabold">${st.todayMin} min</div>
+          <div class="muted text-xs font-semibold mt-1">Enfocado Hoy</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="text-2xl font-extrabold">${st.weekMin} min</div>
+          <div class="muted text-xs font-semibold mt-1">Esta Semana</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function viewSettings() {
+  if (S.ui.settingsSub === 'focoStats') return viewFocoStatsSub();
+
+  const th = S.settings.theme;
+  const mStats = getMonthlyTaskCompletion();
+  const fStats = getFocusStats();
   const hasKey = !!(S.settings.geminiKey || '').trim();
 
   return `
     <div class="flex-none mb-3">
-      <h1 class="text-xl font-extrabold">Ajustes y Estadísticas</h1>
+      <h1 class="text-xl font-extrabold">Ajustes</h1>
     </div>
     <div class="scroll">
-      <!-- FOCO Stats -->
+      <!-- 1.1 Modos de Visualización -->
       <div class="card p-4 mb-3">
-        <div class="label mb-3">Estadísticas de Concentración (FOCO Stats)</div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="card2 p-3">
-            <div class="text-2xl font-extrabold text-[#FF6B00]">🔥 ${st.streak}</div>
-            <div class="muted text-[11px] font-semibold mt-1">Racha (días)</div>
+        <div class="label mb-2.5">Apariencia (Modo de visualización)</div>
+        <div class="seg">
+          <button type="button" class="${th === 'light' ? 'on' : ''}" data-a="setTheme" data-v="light">☀ Modo Normal (Blanco / Naranja)</button>
+          <button type="button" class="${th === 'dark' ? 'on' : ''}" data-a="setTheme" data-v="dark">☾ Modo Oscuro (Negro / Blanco)</button>
+        </div>
+      </div>
+
+      <!-- 1.2 Sección "Stats" -->
+      <div class="card p-4 mb-3">
+        <div class="flex items-center justify-between mb-2">
+          <span class="label">Stats · ${esc(mStats.monthName)}</span>
+          <span class="text-xs font-bold">${mStats.completed}/${mStats.total} completadas</span>
+        </div>
+        <div class="flex items-baseline justify-between mb-2">
+          <div class="text-3xl font-extrabold" style="color:var(--orange)">${mStats.pct}%</div>
+          <div class="muted text-xs">Tareas completadas del mes en curso</div>
+        </div>
+        <div class="bar mb-4"><div style="width:${mStats.pct}%"></div></div>
+
+        <!-- Subapartado navegable "Foco stats" -->
+        <div class="card2 p-3.5 flex items-center justify-between cursor-pointer" data-a="openFocoStats">
+          <div>
+            <div class="font-bold text-sm">Foco stats</div>
+            <div class="muted text-xs mt-0.5">${fStats.totalMin} min enfocados · ${fStats.sessions} sesiones acumuladas</div>
           </div>
-          <div class="card2 p-3">
-            <div class="text-2xl font-extrabold text-[#A5B4FC]">${st.todayMin}m</div>
-            <div class="muted text-[11px] font-semibold mt-1">Enfocado Hoy</div>
-          </div>
-          <div class="card2 p-3">
-            <div class="text-2xl font-extrabold text-[#34d399]">${st.weekMin}m</div>
-            <div class="muted text-[11px] font-semibold mt-1">Esta Semana</div>
+          <div class="flex items-center gap-1 font-bold text-xs" style="color:var(--orange)">
+            <span>Ver desglose</span>
+            ${ic.right}
           </div>
         </div>
       </div>
@@ -1590,8 +1838,8 @@ function viewSettings() {
       <!-- Configuración de Google Gemini API -->
       <div class="card p-4 mb-3">
         <div class="flex items-center justify-between mb-2">
-          <span class="label">Inteligencia Artificial · Google Gemini</span>
-          <span class="text-xs font-bold ${hasKey ? 'text-[#34d399]' : 'muted'}">${hasKey ? '● Activa' : '○ Sin configurar'}</span>
+          <span class="label">Google Gemini API</span>
+          <span class="text-xs font-bold">${hasKey ? '● Configurada' : '○ Modo local activo'}</span>
         </div>
         <p class="muted text-xs mb-3 leading-relaxed">
           Introduce tu API Key gratuita de Google AI Studio para activar el reconocimiento de tareas en lenguaje natural.
@@ -1604,22 +1852,19 @@ function viewSettings() {
 
       <!-- Gestión de datos -->
       <div class="card p-4 mb-3">
-        <div class="label mb-3">Gestión de Datos Local</div>
+        <div class="label mb-3">Gestión de Datos</div>
         <div class="flex flex-col gap-2">
           <button class="btn w-full" data-a="exportJSON">⬇ Exportar copia JSON</button>
           <button class="btn w-full" data-a="importJSON">⬆ Importar JSON</button>
           <button class="btn btn-danger w-full" data-a="resetData">Restablecer datos de fábrica</button>
         </div>
       </div>
-
-      <div class="muted text-center text-xs py-2">
-        FOCO PWA · Todos tus datos e historial persisten de forma segura en tu navegador.
-      </div>
     </div>`;
 }
 
 /* ============================ RENDER PRINCIPAL ============================ */
 function render() {
+  applyTheme();
   const t = S.ui.tab;
   const st = getFocusStats();
   const topSt = $('#topStats');
@@ -1637,18 +1882,40 @@ function render() {
   applyMic();
 }
 
-/* ============================ ACCIONES E INTERACCIONES ============================ */
+/* ============================ ACCIONES ============================ */
 const A = {
   nav(d) {
     if (S.ui.sub === 'pomo' && d.v !== 'study') exitFullscreen();
     S.ui.tab = d.v;
     S.ui.sub = 'list';
+    S.ui.settingsSub = 'main';
     save();
     render();
   },
+
+  /* Calendario y navegación de fechas */
+  setCalMode(d) { S.ui.calMode = d.v; save(); render(); },
   selDay(d) { sel = d.v; render(); },
-  prevWeek() { sel = addDays(sel, -7); render(); },
-  nextWeek() { sel = addDays(sel, 7); render(); },
+  prevCal() {
+    if (S.ui.calMode === 'month') {
+      const d = parse(sel);
+      const t = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+      sel = fmt(t);
+    } else {
+      sel = addDays(sel, -7);
+    }
+    render();
+  },
+  nextCal() {
+    if (S.ui.calMode === 'month') {
+      const d = parse(sel);
+      const t = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      sel = fmt(t);
+    } else {
+      sel = addDays(sel, 7);
+    }
+    render();
+  },
   goToday() { sel = todayStr(); render(); },
   toggleBlock(d) {
     const arr = S.ui.collapsedBlocks || [];
@@ -1660,34 +1927,25 @@ const A = {
     render();
   },
 
-  /* Tareas en Inicio */
-  openAdd() {
-    const val = ($('#quickIn') || {}).value || '';
-    quickText = '';
-    openAddModal(sel, val.trim());
-  },
+  /* Creación [+] y Edición */
+  openAdd() { openTypeChoiceModal(); },
+  chooseType(d) { openCreateForm(d.v); },
+  switchFormType(d) { syncSheetDraft(); D.itemType = d.v; renderTaskSheet(); },
   editTask(d) { openEditModal(d.v); },
   toggleTask(d) {
     const e = S.events.find(x => x.id === d.v);
     if (!e) return;
     e.doneOn = e.doneOn || {};
-    if (e.doneOn[sel]) {
-      delete e.doneOn[sel];
-    } else {
-      e.doneOn[sel] = true;
-      markDayActive(sel);
-    }
+    if (e.doneOn[sel]) delete e.doneOn[sel];
+    else { e.doneOn[sel] = true; markDayActive(sel); }
     save();
     render();
   },
   micHome() {
-    startVoice('home', phrase => handleVoiceTaskCreation(phrase), liveTxt => {
-      const i = $('#quickIn');
-      if (i) i.value = liveTxt;
-    });
+    startVoice('home', phrase => handleVoiceTaskCreation(phrase));
   },
 
-  /* Bottom Sheet Modal Actions */
+  /* Selectores del Formulario Modal (sin bloqueo) */
   setCat(d) { syncSheetDraft(); D.category = d.v; renderTaskSheet(); },
   setTod(d) { syncSheetDraft(); D.timeOfDay = d.v; renderTaskSheet(); },
   setDur(d) { syncSheetDraft(); D.dur = Number(d.v); renderTaskSheet(); },
@@ -1697,45 +1955,10 @@ const A = {
     D.time = '';
     renderTaskSheet();
   },
-  addDraftSub() {
-    syncSheetDraft();
-    const inp = $('#newSubIn');
-    const v = inp ? inp.value.trim() : '';
-    if (!v) return;
-    D.subtasks.push({ id: uid(), text: cap(v), done: false });
-    renderTaskSheet();
-  },
-  toggleDraftSub(d) {
-    syncSheetDraft();
-    const st = D.subtasks[Number(d.v)];
-    if (st) st.done = !st.done;
-    renderTaskSheet();
-  },
-  delDraftSub(d) {
-    syncSheetDraft();
-    D.subtasks.splice(Number(d.v), 1);
-    renderTaskSheet();
-  },
-  micSheet() {
-    startVoice('m-sheet', async phrase => {
-      const p = await parseTaskWithGemini(phrase);
-      if (!D) return;
-      D.text = p.title || cap(phrase);
-      if (p.date) D.date = p.date;
-      if (p.time) D.time = p.time;
-      if (p.timeOfDay) D.timeOfDay = p.timeOfDay;
-      if (p.duration) D.dur = p.duration;
-      if (p.category) D.category = p.category;
-      renderTaskSheet();
-    }, liveTxt => {
-      const i = $('#fText');
-      if (i) i.value = liveTxt;
-    });
-  },
   delTask() {
     if (!D || !D.id) return;
     const id = D.id;
-    confirmBox('Eliminar tarea', '¿Seguro que deseas eliminar esta tarea?', () => {
+    confirmBox('Eliminar elemento', '¿Seguro que deseas eliminarlo?', () => {
       S.events = S.events.filter(e => e.id !== id);
       save();
       closeModal();
@@ -1759,7 +1982,7 @@ const A = {
         S.ui.openSubj = [s.id];
         save();
         render();
-      }, 'Ej. Biología Celular');
+      }, 'Ej. Historia');
     }
   },
   micStudy() { startVoice('study', studyVoice); },
@@ -1851,7 +2074,14 @@ const A = {
     tick();
   },
 
-  /* Ajustes */
+  /* Ajustes y Stats */
+  setTheme(d) {
+    S.settings.theme = d.v === 'light' ? 'light' : 'dark';
+    save();
+    render();
+  },
+  openFocoStats() { S.ui.settingsSub = 'focoStats'; render(); },
+  closeFocoStats() { S.ui.settingsSub = 'main'; render(); },
   saveApiKey() {
     const inp = $('#geminiKeyIn');
     S.settings.geminiKey = inp ? inp.value.trim() : '';
@@ -1860,7 +2090,7 @@ const A = {
     toast(S.settings.geminiKey ? '🔑 Google Gemini API Key guardada' : 'API Key eliminada');
   },
   exportJSON() {
-    const blob = new Blob([JSON.stringify({ app: 'foco', version: 5, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'foco', version: 6, exported: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `foco-backup-${todayStr()}.json`;
@@ -1881,7 +2111,7 @@ const A = {
     }, 'Borrar todo');
   },
 
-  /* Modales generales */
+  /* Modales */
   mclose() { closeModal(); },
   mbg() { closeModal(); },
   mok() { const cb = window._okCb; closeModal(); if (cb) cb(); }
@@ -1898,34 +2128,41 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('input', e => {
-  if (e.target.id === 'quickIn') quickText = e.target.value;
+  if (e.target.id === 'fCustomDur' && D) {
+    const v = parseInt(e.target.value, 10);
+    if (v > 0) {
+      D.dur = clampMin(v);
+      document.querySelectorAll('[data-a="setDur"]').forEach(b => b.classList.remove('on'));
+    }
+  }
 });
 
-document.addEventListener('submit', async e => {
+document.addEventListener('submit', e => {
   const f = e.target.closest('[data-form]');
   if (!f) return;
   e.preventDefault();
   const kind = f.dataset.form;
 
-  if (kind === 'quickAdd') {
-    const v = ($('#quickIn') || {}).value.trim();
-    if (!v) return;
-    await handleVoiceTaskCreation(v);
-  } else if (kind === 'saveTask') {
+  if (kind === 'saveTask') {
     syncSheetDraft();
-    const title = (D.text || '').trim();
-    if (!title) { const i = $('#fText'); if (i) i.focus(); return; }
+    const cd = $('#fCustomDur');
+    if (cd && cd.value) D.dur = clampMin(cd.value);
+
+    const rawTitle = (D.text || '').trim();
+    if (!rawTitle) { const i = $('#fText'); if (i) i.focus(); return; }
+
     const payload = {
-      text: cap(title),
+      itemType: D.itemType || 'task',
+      text: cap(rawTitle),
       date: D.date || sel,
-      category: D.category,
+      category: D.category || 'Study',
       time: D.time || '',
-      timeOfDay: D.time ? inferTimeOfDay(D.time, D.timeOfDay) : D.timeOfDay,
+      timeOfDay: D.timeOfDay || inferTimeOfDay(D.time, 'morning'),
       dur: Number(D.dur) || 15,
-      repeat: D.repeat || 'none',
-      notes: D.notes || '',
-      subtasks: D.subtasks || []
+      repeat: REP_OPTIONS.includes(D.repeat) ? D.repeat : 'none',
+      notes: D.notes || ''
     };
+
     if (D.id) {
       const ev = S.events.find(x => x.id === D.id);
       if (ev) Object.assign(ev, payload);
@@ -1936,7 +2173,7 @@ document.addEventListener('submit', async e => {
     save();
     closeModal();
     render();
-    toast('✓ Tarea guardada');
+    toast(payload.itemType === 'reminder' ? '🔔 Recordatorio guardado' : '✓ Tarea guardada');
   } else if (kind === 'ask') {
     const v = ($('#askInput') || {}).value.trim();
     if (!v) return;
@@ -1982,8 +2219,8 @@ function setupPWA() {
     start_url: base,
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#0E111A',
-    theme_color: '#0E111A',
+    background_color: '#000000',
+    theme_color: '#000000',
     lang: 'es',
     icons: [{ src: ICON_URI, sizes: 'any', type: 'image/svg+xml', purpose: 'any' }]
   };
