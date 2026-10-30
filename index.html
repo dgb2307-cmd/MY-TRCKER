@@ -1688,7 +1688,7 @@ function viewStudy() {
               <span class="chip c-amber ${t.notes ? 'on' : ''}" data-a="flag" data-s="${s.id}" data-v="${t.id}" data-k="notes">Apuntes hechos</span>
               <span class="chip c-green ${t.studied ? 'on' : ''}" data-a="flag" data-s="${s.id}" data-v="${t.id}" data-k="studied">Estudiado</span>
             </div>
-          </div>`).join('') : '<div class="muted text-xs py-2 text-center">Sin temas todavía. Añade o dicta el primero.</div>'}
+          </div>`).join('') : '<div class="muted text-xs py-2 text-center">Sin temas todavía. Añade el primero con el botón de abajo.</div>'}
         <div class="flex gap-2 mt-2">
           <button class="btn flex-1" style="padding:8px" data-a="addTopic" data-v="${s.id}">${ic.plus} Añadir tema</button>
           <button class="btn btn-ghost" style="padding:8px" data-a="renSubj" data-v="${s.id}">${ic.edit}</button>
@@ -1713,7 +1713,7 @@ function viewStudy() {
     <div class="card p-6 text-center my-auto">
       <div class="text-3xl mb-2">📚</div>
       <div class="font-bold text-base mb-1">Gestor de Estudio</div>
-      <div class="muted text-xs">Pulsa + para crear tu primera asignatura o usa el micrófono para dictar temas.</div>
+      <div class="muted text-xs">Pulsa + para crear tu primera asignatura.</div>
     </div>`;
 
   return `
@@ -1727,33 +1727,13 @@ function viewStudy() {
     </div>
     <div class="scroll">${cards}</div>
     <div class="qbar">
-      <button type="button" class="sq" data-a="studyAdd" aria-label="Añadir asignatura o tema">${ic.plusBig}</button>
       <button type="button" class="obar" data-a="openPomo">
         ${ic.clock}
         <span>Temporizador Pomodoro</span>
         <span id="obarTime" style="font-variant-numeric:tabular-nums"></span>
       </button>
-      <button type="button" class="sq" data-a="micStudy" data-mic="study" aria-label="Dictar tema o materia">${ic.mic}</button>
+      <button type="button" class="sq" data-a="studyAdd" aria-label="Añadir asignatura o tema">${ic.plusBig}</button>
     </div>`;
-}
-
-function studyVoice(text) {
-  const sub = openSubj();
-  let name = cap(text.trim().replace(/[.,;]+$/, ''));
-  const isMateriaCmd = /^\s*(?:materia|asignatura)\b/i.test(name);
-  name = name.replace(/^(?:(?:a[ñn]ade|agrega|crea|nueva|nuevo)\s+)?(?:la\s+|una\s+|un\s+)?(?:materia|asignatura|tema|unidad)\s+(?:de\s+)?/i, '');
-  name = cap(name);
-  if (sub && !isMateriaCmd) {
-    sub.topics.push({ id: uid(), name, given: false, notes: false, studied: false });
-    toast(`✓ Tema "${name}" añadido a ${sub.name}`);
-  } else {
-    const s = { id: uid(), name, topics: [] };
-    S.subjects.push(s);
-    S.ui.openSubj = [s.id];
-    toast(`✓ Asignatura creada: ${name}`);
-  }
-  save();
-  render();
 }
 
 /* ============================ POMODORO (DIAL INTERACTIVO + FULLSCREEN) ============================ */
@@ -2203,7 +2183,6 @@ const A = {
       }, 'Ej. Historia');
     }
   },
-  micStudy() { startVoice('study', studyVoice); },
   toggleSubj(d) {
     S.ui.openSubj = S.ui.openSubj.includes(d.v) ? [] : [d.v];
     save();
