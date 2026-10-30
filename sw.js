@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tracker-pwa-v11';
+const CACHE_NAME = 'tracker-pwa-v1.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
