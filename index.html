@@ -1329,8 +1329,8 @@ async function verifyGeminiKey(rawKey) {
     }
   }
 
-  // Si empieza por AIza y el fallo fue por abrir el archivo localmente (file://) o cuota temporal, permitir activarla
-  if (/^AIza[0-9A-Za-z\-_]{30,}$/.test(apiKey) && !/API key not valid/i.test(lastApiError)) {
+// Permitir tanto AIza como los nuevos formatos AQ. si el fallo es por red local
+  if ((apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) && !/API key not valid/i.test(lastApiError)) {
     lastApiError = '';
     return true;
   }
